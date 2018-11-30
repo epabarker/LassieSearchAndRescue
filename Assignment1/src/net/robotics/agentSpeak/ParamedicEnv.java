@@ -2,6 +2,7 @@
 
 import jason.asSyntax.*;
 import jason.environment.*;
+import jason.environment.Environment;
 import jason.environment.grid.GridWorldModel;
 import jason.environment.grid.GridWorldView;
 
@@ -10,6 +11,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.util.logging.*;
 
+
 public class ParamedicEnv extends Environment {
 	
     public static final int GSize = 6; // The bay is a 6x6 grid
@@ -17,6 +19,8 @@ public class ParamedicEnv extends Environment {
     public static final int VICTIM  = 16; // victim code in grid model
 
     private Logger logger = Logger.getLogger("doctor2018."+ParamedicEnv.class.getName());
+    
+    public static final Literal foundV = Literal.parseLiteral("victim(r)");
     
     // Create objects for visualising the bay.  
     // This is based on the Cleaning Robots code.
@@ -67,6 +71,24 @@ public class ParamedicEnv extends Environment {
            
         informAgsEnvironmentChanged();
         return true;       
+    }
+    
+   // needs to be configurred for the paramedic agent
+    void updatePercepts() {
+        clearPercepts();
+
+        Location paramedic = model.getAgPos(0);
+        
+        Literal pos1 = Literal.parseLiteral("location(r," + paramedic.x + "," + paramedic.y + ")");
+        
+
+        addPercept(pos1);
+        
+
+        if (model.hasObject(VICTIM, paramedic)) {
+            addPercept(foundV);
+        }
+       
     }
 
     /** Called before the end of MAS execution */

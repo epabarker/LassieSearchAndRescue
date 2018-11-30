@@ -1,12 +1,36 @@
+// ========================================================================
+// Initial beliefs and rules
+// ========================================================================
+//***** get location from robot, store in
+// location(r, X,Y)
 
 price(_Service,X) :- .random(R) & X = (10*R)+100.
 
+allNonCriticalRescued :- .count(~critical(_,_), 0).
+
+allCriticalRescued :- .count(critical(_,_), 0).
+
+foundAllVictims :- .count(foundV(_,_), 3).
+
+rescuedAllVictims :- .count(rescued(_,_), 3).
+
+foundAllVictims :- nonCriticalRescued + criticalRescued. 
 
 plays(initiator,doctor).
 
-    +atlocation(x,y)
-    +colour(source[percept])
-    +status(source[A])
+at(P) :- location(P,X,Y) & location(r,X,Y).
+// ========================================================================
+// Initial goals
+// ========================================================================
+// *****get our initial location from the robot*****
+
+   //+atlocation(x,y)
+   // +colour(source[percept])
+   // +status(source[A])
+// ========================================================================
+// Plan Library
+// ========================================================================
+   
 
 +plays(initiator,In)
    :  .my_name(Me)
@@ -36,6 +60,7 @@ plays(initiator,doctor).
 							  location(obstacle,_,_)
     <- .count(location(victim,_,_),Vcount);		// Determine the victims
        .count(location(obstacle,_,_),Ocount);	// Determine the obstacles
+       !startSearch;
        .print("Start the Resuce mission for ",C," critical and ",NC, " non-critical victims; Hospital is at (",X,",",Y,"), and we have ", Vcount, " victims and ", Ocount," known obstacles").
  
 
@@ -44,12 +69,15 @@ plays(initiator,doctor).
 +startRescueMission(D,C,NC)
     <- .wait(2000);  				// wait for the beliefs to be obtained
        -+startRescueMission(D,C,NC).// replace the mental note
+       
     		
 
-+startSearch(victim,_,_) : .count(location(victim,_,_),Vcount)
-    <- !check(cell);
-       !requestVictimStatus;
-       !victimStatus.
++!startSearch
+    <-	next(victim).
+    
+@lg[atomic] +victim(r) : not .desire(takeVictim(victim,hospital))
+   <- .print("Critical victim!");
+      !rescueVictim(victim,hospital).
 
 +location(victim,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Victim could be at ",X,", ",Y); addVictim(X,Y).
@@ -70,28 +98,35 @@ plays(initiator,doctor).
 
 +!getScenario(D) <- .send(D,askAll,location(_,_,_)).
 
+// Get closest victim from environment
+// Are we at victim? If not, go to victim
+
++!startSearch
+    <-  next(location)
+    	?location(victim,X,Y)
+     	!at(victim)
+    	!check(X,Y);
+       !requestVictimStatus;
+       !victimStatus.
+
+
 ////////////////////////////////////////////////////////////////////////////////
 +!requestVictimStatus(D,X,Y,C)
     <- .wait(2000);
      .send(D, tell, requestVictimStatus(X,Y,C)).
-     if (critical(_,_)) {
-        !at(+location(hospital,X,Y)[source(D)])
-        }
-        elif (~critical){
-        if 
-        }
+     
 ////////////////////////////////////////////////////////////////////////////////
 
-+!check(cell) : not victims(A)
+/* +!check(cell) : not victims(A) //tell robot to check cell
    <- next(cell);
       !check(cell).
 +!check(cell).
 
-+victim(critical) : not .desire(takeVictim(critical,hospital))
+@lg[atomic] +victim(critical) : not .desire(takeVictim(critical,hospital))
    <- .print("Critical victim!");
       !rescueVictim(critical,hospital).
 
-+!rescueVictim(Victim, doctor) : true
++!rescueVictim(Victim, doctor) : true 
    <- ?pos(hospital,X,Y); 
       -+pos(current,X,Y);
 	  !take(victim, hospital);
@@ -106,4 +141,26 @@ plays(initiator,doctor).
 +!ensure_pick(victim) : victim
    <- .percieve(C);
       !ensure_pick(victim).
-+!ensure_pick(_).
++!ensure_pick(_).*/
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+// we will have 3 plans : 1- for critical -> rescue
+// 2- ~critical and the critical not rescued
+// 3- rescuing ~critical when all criticals rescued
+
++!at(L) : at(L).
++!at(L) <- ?pos(L,X,Y);
+           move_towards(X,Y);
+           !at(L).
+
+
+
+					  
+					  
+					  
+					  
+					  
+					  
+					  
+					  
