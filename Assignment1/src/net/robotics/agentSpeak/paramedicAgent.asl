@@ -6,19 +6,17 @@
 
 price(_Service,X) :- .random(R) & X = (10*R)+100.
 
-allNonCriticalRescued :- .count(~critical(_,_), 0).
+//If all critical have been rescued, this will evaluate as true.
+allCriticalRescued :- foundAllVictims & (critical(X,Y) & rescued(X,Y)).
 
-allCriticalRescued :- .count(critical(_,_), 0).
-
+//If all victim locations have been found, this will evaluate as true. 
 foundAllVictims :- .count(foundV(_,_), 3).
 
+//If all victims have been rescued, this will evaluate as true. 
 rescuedAllVictims :- .count(rescued(_,_), 3).
-
-foundAllVictims :- nonCriticalRescued + criticalRescued. 
 
 plays(initiator,doctor).
 
-at(P) :- location(P,X,Y) & location(r,X,Y).
 // ========================================================================
 // Initial goals
 // ========================================================================
@@ -62,22 +60,11 @@ at(P) :- location(P,X,Y) & location(r,X,Y).
        .count(location(obstacle,_,_),Ocount);	// Determine the obstacles
        !startSearch;
        .print("Start the Resuce mission for ",C," critical and ",NC, " non-critical victims; Hospital is at (",X,",",Y,"), and we have ", Vcount, " victims and ", Ocount," known obstacles").
- 
-
-
    
 +startRescueMission(D,C,NC)
     <- .wait(2000);  				// wait for the beliefs to be obtained
        -+startRescueMission(D,C,NC).// replace the mental note
-       
-    		
-
-+!startSearch
-    <-	next(victim).
     
-@lg[atomic] +victim(r) : not .desire(takeVictim(victim,hospital))
-   <- .print("Critical victim!");
-      !rescueVictim(victim,hospital).
 
 +location(victim,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Victim could be at ",X,", ",Y); addVictim(X,Y).
@@ -98,17 +85,6 @@ at(P) :- location(P,X,Y) & location(r,X,Y).
 
 +!getScenario(D) <- .send(D,askAll,location(_,_,_)).
 
-// Get closest victim from environment
-// Are we at victim? If not, go to victim
-
-+!startSearch
-    <-  next(location)
-    	?location(victim,X,Y)
-     	!at(victim)
-    	!check(X,Y);
-       !requestVictimStatus;
-       !victimStatus.
-
 
 ////////////////////////////////////////////////////////////////////////////////
 +!requestVictimStatus(D,X,Y,C)
@@ -116,6 +92,20 @@ at(P) :- location(P,X,Y) & location(r,X,Y).
      .send(D, tell, requestVictimStatus(X,Y,C)).
      
 ////////////////////////////////////////////////////////////////////////////////
+
+// If the victim is critical:
++!victimPlan(X,Y) : critical(X,Y)
+    <-  !rescue(X,Y);       // Trigger an action in environment.                    // TO SERVER
+        +rescued(X,Y);      // Add to the count of rescued victims.
+// If the victim is non-critical, and not all critical victims have been rescued:
++!victimPlan(X,Y) : ~critical(X,Y) & not allCriticalRescued
+    <-  !next(victim).      // Find the next victim                                 // TO SERVER
+// If the victim is non-critical, and all victims have been rescued:
++!victimPlan(X,Y) : ~critical(X,Y) & allCriticalRescued
+    <-  !rescue(X,Y);       // Trigger an action in environment.                    // TO SERVER
+        +rescued(X,Y);      // Add to the count of rescued victims.
+
++!check(victims) : 
 
 /* +!check(cell) : not victims(A) //tell robot to check cell
    <- next(cell);
@@ -148,19 +138,3 @@ at(P) :- location(P,X,Y) & location(r,X,Y).
 // we will have 3 plans : 1- for critical -> rescue
 // 2- ~critical and the critical not rescued
 // 3- rescuing ~critical when all criticals rescued
-
-+!at(L) : at(L).
-+!at(L) <- ?pos(L,X,Y);
-           move_towards(X,Y);
-           !at(L).
-
-
-
-					  
-					  
-					  
-					  
-					  
-					  
-					  
-					  

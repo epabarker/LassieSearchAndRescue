@@ -55,6 +55,10 @@ public class ParamedicEnv extends Environment {
                 int y = (int)((NumberTerm)action.getTerm(1)).solve();
                 model.addHospital(x,y);
                 logger.info("adding hospital at: "+x+","+y);
+            } else if (action.getFunctor().equals("nextVictim")) {
+                model.moveTo(x,y);
+            } else if ((action.getFunctor().equals("savePerceptBelief")) {
+                model.updatePercepts();
             } else {
                 logger.info("executing: "+action+", but not implemented!");
                 return true;
@@ -64,6 +68,7 @@ public class ParamedicEnv extends Environment {
                 // [paramedic] Could not finish intention: intention 6: 
                 //    +location(obstacle,2,2)[source(doctor)] <- ... addObstacle(X,Y) / {X=2, Y=2, D=doctor}
                 // This is due to the action failing, and there being no alternative.
+                //next(victim) adding(percept)
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -80,10 +85,8 @@ public class ParamedicEnv extends Environment {
         Location paramedic = model.getAgPos(0);
         
         Literal pos1 = Literal.parseLiteral("location(r," + paramedic.x + "," + paramedic.y + ")");
-        
-
+    
         addPercept(pos1);
-        
 
         if (model.hasObject(VICTIM, paramedic)) {
             addPercept(foundV);
@@ -119,6 +122,7 @@ public class ParamedicEnv extends Environment {
             add(OBSTACLE, x, y);
         }
 
+        void moveTo(int x, int y )
     }
     
     // ======================================================================
