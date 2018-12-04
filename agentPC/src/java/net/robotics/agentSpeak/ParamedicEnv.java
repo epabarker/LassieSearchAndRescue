@@ -1,3 +1,5 @@
+package net.robotics.agentSpeak;
+
 // Environment code for project doctor2018
 
 import jason.asSyntax.*;
@@ -5,6 +7,7 @@ import jason.environment.*;
 import jason.environment.Environment;
 import jason.environment.grid.GridWorldModel;
 import jason.environment.grid.GridWorldView;
+import net.robotics.agentSpeak.ParamedicEnv.RobotBayModel.RobotBayView;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -21,7 +24,7 @@ public class ParamedicEnv extends Environment {
     private Logger logger = Logger.getLogger("doctorParamedicConfig."+ParamedicEnv.class.getName());
     
     public static final Term foundV = Literal.parseLiteral("next(victim)");
-    public static final Term foundV = Literal.parseLiteral("rescue(X,Y)");
+    //public static final Term foundV = Literal.parseLiteral("rescue(X,Y)");
     
     //search - victimplan - rescue - requestvictimstatus() - startmission
     //
@@ -126,7 +129,8 @@ public class ParamedicEnv extends Environment {
             add(OBSTACLE, x, y);
         }
 
-        void moveTo(int x, int y )
+        void moveTo(int x, int y ){
+        	
     }
     
     // ======================================================================
@@ -170,4 +174,5 @@ public class ParamedicEnv extends Environment {
         }
     }
     // ======================================================================
+}
 }

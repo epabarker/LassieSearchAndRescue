@@ -1,5 +1,7 @@
 package net.robotics.mcllocalisation;
 
+import net.robotics.map.KnownMap;
+
 public class testMCL {
 	private static PCParticlePoseProvider particlePP;
 

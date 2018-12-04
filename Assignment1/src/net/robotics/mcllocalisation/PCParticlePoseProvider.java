@@ -3,6 +3,8 @@ package net.robotics.mcllocalisation;
 import java.util.ArrayList;
 import java.util.Random;
 
+import net.robotics.map.KnownMap;
+
 public class PCParticlePoseProvider {
 	private ParticleSet tSet;
 	
