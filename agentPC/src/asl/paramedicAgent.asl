@@ -69,7 +69,6 @@ plays(initiator,doctor).
 +location(hospital,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Hospital is at ",X,", ",Y); addHospital(X,Y).
     
-
 +critical(X,Y)
     <-  .print("The victim at ", X, ",", Y, " is critical");
 
@@ -121,3 +120,4 @@ plays(initiator,doctor).
         !go(hospital);                                                              // TO SERVER
         !drop(victim);                                                              // TO SERVER
         +rescued(X,Y).      // Add to the count of rescued victims.
+    
