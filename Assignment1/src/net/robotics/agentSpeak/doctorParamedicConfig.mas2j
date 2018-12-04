@@ -1,0 +1,13 @@
+MAS doctorParamedicConfig {
+
+	infrastructure: Centralised
+
+	environment: ParamedicEnv
+
+	agents:
+		paramedic;
+		doctor;
+
+	aslSourcePath:
+		"src/asl";
+}
