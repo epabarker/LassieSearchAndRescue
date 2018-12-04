@@ -5,7 +5,7 @@ MAS doctorParamedicConfig {
 	environment: ParamedicEnv
 
 	agents:
-		paramedic;
+		paramedicAgent;
 		doctor;
 
 	aslSourcePath:

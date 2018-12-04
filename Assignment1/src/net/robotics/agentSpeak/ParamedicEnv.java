@@ -18,9 +18,13 @@ public class ParamedicEnv extends Environment {
     public static final int HOSPITAL  = 8; // hospital code in grid model
     public static final int VICTIM  = 16; // victim code in grid model
 
-    private Logger logger = Logger.getLogger("doctor2018."+ParamedicEnv.class.getName());
+    private Logger logger = Logger.getLogger("doctorParamedicConfig."+ParamedicEnv.class.getName());
     
-    public static final Literal foundV = Literal.parseLiteral("victim(r)");
+    public static final Term foundV = Literal.parseLiteral("next(victim)");
+    public static final Term foundV = Literal.parseLiteral("rescue(X,Y)");
+    
+    //search - victimplan - rescue - requestvictimstatus() - startmission
+    //
     
     // Create objects for visualising the bay.  
     // This is based on the Cleaning Robots code.

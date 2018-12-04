@@ -4,10 +4,11 @@
 //***** get location from robot, store in
 // location(r, X,Y)
 
+
 price(_Service,X) :- .random(R) & X = (10*R)+100.
 
 //If all critical have been rescued, this will evaluate as true.
-allCriticalRescued :- foundAllVictims & (critical(X,Y) & rescued(X,Y)).
+allCriticalRescued :- .count(cRescued(_,_), CRITICALCOUNT).
 
 //If all victim locations have been found, this will evaluate as true. 
 foundAllVictims :- .count(foundV(_,_), 3).
@@ -17,14 +18,7 @@ rescuedAllVictims :- .count(rescued(_,_), 3).
 
 plays(initiator,doctor).
 
-// ========================================================================
-// Initial goals
-// ========================================================================
-// *****get our initial location from the robot*****
 
-   //+atlocation(x,y)
-   // +colour(source[percept])
-   // +status(source[A])
 // ========================================================================
 // Plan Library
 // ========================================================================
@@ -58,14 +52,14 @@ plays(initiator,doctor).
 							  location(obstacle,_,_)
     <- .count(location(victim,_,_),Vcount);		// Determine the victims
        .count(location(obstacle,_,_),Ocount);	// Determine the obstacles
-       !startSearch;
+       CRITICALCOUNT = C;
+       !search;
        .print("Start the Resuce mission for ",C," critical and ",NC, " non-critical victims; Hospital is at (",X,",",Y,"), and we have ", Vcount, " victims and ", Ocount," known obstacles").
    
 +startRescueMission(D,C,NC)
     <- .wait(2000);  				// wait for the beliefs to be obtained
        -+startRescueMission(D,C,NC).// replace the mental note
     
-
 +location(victim,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Victim could be at ",X,", ",Y); addVictim(X,Y).
 
@@ -77,11 +71,17 @@ plays(initiator,doctor).
     
 
 +critical(X,Y)
-    <- .print("The victim at ", X, ",", Y, " is critical").
+    <-  .print("The victim at ", X, ",", Y, " is critical");
 
 +~critical(X,Y)
-    <- .print("The victim at ", X, ",", Y, " is not critical").
+    <-  .print("The victim at ", X, ",", Y, " is not critical");
 
++colour(X,Y,C)
+    <- !requestVictimStatus(doctor,X,Y,C).
+
++location(r,X,Y) : location(victim,X,Y)
+    <-  !perceive(colour);
+        !checkColour(X,Y).
 
 +!getScenario(D) <- .send(D,askAll,location(_,_,_)).
 
@@ -90,51 +90,34 @@ plays(initiator,doctor).
 +!requestVictimStatus(D,X,Y,C)
     <- .wait(2000);
      .send(D, tell, requestVictimStatus(X,Y,C)).
-     
 ////////////////////////////////////////////////////////////////////////////////
 
++!search : not rescuedAllVictims
+    <-  !next(victim);
+        !search.
++!search : rescuedAllVictims
+    <-  !go(home);                                                                  // TO SERVER
+
++!checkColour(X,Y) : colour(X,Y,burgandy) | colour(X,Y,cyan)
+    <-  !requestVictimStatus(D,X,Y,C);
+        !intention(X,Y).
++!checkColour(X,Y) : not (colour(X,Y,burgandy) | colour(X,Y,cyan))
+    <-  -location(victim,X,Y).
+
 // If the victim is critical:
-+!victimPlan(X,Y) : critical(X,Y)
-    <-  !rescue(X,Y);       // Trigger an action in environment.                    // TO SERVER
-        +rescued(X,Y);      // Add to the count of rescued victims.
++!intention(X,Y) : critical(X,Y)
+    <-  !rescue(X,Y);       // Go to hospital.                                      // TO SERVER
 // If the victim is non-critical, and not all critical victims have been rescued:
-+!victimPlan(X,Y) : ~critical(X,Y) & not allCriticalRescued
-    <-  !next(victim).      // Find the next victim                                 // TO SERVER
++!intention(X,Y) : ~critical(X,Y) & not allCriticalRescued
+    <-  !next(victim).      // Go to the next victim.                               // TO SERVER
 // If the victim is non-critical, and all victims have been rescued:
-+!victimPlan(X,Y) : ~critical(X,Y) & allCriticalRescued
-    <-  !rescue(X,Y);       // Trigger an action in environment.                    // TO SERVER
-        +rescued(X,Y);      // Add to the count of rescued victims.
++!intention(X,Y) : ~critical(X,Y) & allCriticalRescued
+    <-  !rescue(X,Y);       // Go to hospital.                                      // TO SERVER
+        
 
-+!check(victims) : 
-
-/* +!check(cell) : not victims(A) //tell robot to check cell
-   <- next(cell);
-      !check(cell).
-+!check(cell).
-
-@lg[atomic] +victim(critical) : not .desire(takeVictim(critical,hospital))
-   <- .print("Critical victim!");
-      !rescueVictim(critical,hospital).
-
-+!rescueVictim(Victim, doctor) : true 
-   <- ?pos(hospital,X,Y); 
-      -+pos(current,X,Y);
-	  !take(victim, hospital);
-	  !at(curr);
-	  !!check(cell).
-
-+!take(victim,hospital) : true
-<- !ensure_pick(victim);
-    !at(hospital);
-    drop(victim).
-	     
-+!ensure_pick(victim) : victim
-   <- .percieve(C);
-      !ensure_pick(victim).
-+!ensure_pick(_).*/
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-// we will have 3 plans : 1- for critical -> rescue
-// 2- ~critical and the critical not rescued
-// 3- rescuing ~critical when all criticals rescued
++!rescue(X,Y) : true 
+    <-  !take(victim);                                                              // TO SERVER
+        -location(victim,X,Y);                                                      // TO SERVER
+        !go(hospital);                                                              // TO SERVER
+        !drop(victim);                                                              // TO SERVER
+        +rescued(X,Y).      // Add to the count of rescued victims.
