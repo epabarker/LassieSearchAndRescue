@@ -69,13 +69,13 @@ plays(initiator,doctor).
 +location(hospital,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Hospital is at ",X,", ",Y); addHospital(X,Y).
     
-+critical(X,Y)
-    <-  .print("The victim at ", X, ",", Y, " is critical");
++critical(X,Y) : true
+    <-  .print("The victim at ", X, ",", Y, " is critical").
 
-+~critical(X,Y)
-    <-  .print("The victim at ", X, ",", Y, " is not critical");
++~critical(X,Y): true
+    <-  .print("The victim at ", X, ",", Y, " is not critical").
 
-+colour(X,Y,C)
++colour(X,Y,C): true
     <- !requestVictimStatus(doctor,X,Y,C).
 
 +location(r,X,Y) : location(victim,X,Y)
@@ -85,17 +85,17 @@ plays(initiator,doctor).
 +!getScenario(D) <- .send(D,askAll,location(_,_,_)).
 
 
-////////////////////////////////////////////////////////////////////////////////
+
 +!requestVictimStatus(D,X,Y,C)
     <- .wait(2000);
      .send(D, tell, requestVictimStatus(X,Y,C)).
-////////////////////////////////////////////////////////////////////////////////
+
 
 +!search : not rescuedAllVictims
     <-  !next(victim);
         !search.
 +!search : rescuedAllVictims
-    <-  !go(home);                                                                  // TO SERVER
+    <-  !go(home).                                                                  // TO SERVER
 
 +!checkColour(X,Y) : colour(X,Y,burgandy) | colour(X,Y,cyan)
     <-  !requestVictimStatus(D,X,Y,C);
@@ -105,13 +105,13 @@ plays(initiator,doctor).
 
 // If the victim is critical:
 +!intention(X,Y) : critical(X,Y)
-    <-  !rescue(X,Y);       // Go to hospital.                                      // TO SERVER
+    <-  !rescue(X,Y).       // Go to hospital.                                      // TO SERVER
 // If the victim is non-critical, and not all critical victims have been rescued:
 +!intention(X,Y) : ~critical(X,Y) & not allCriticalRescued
     <-  !next(victim).      // Go to the next victim.                               // TO SERVER
 // If the victim is non-critical, and all victims have been rescued:
 +!intention(X,Y) : ~critical(X,Y) & allCriticalRescued
-    <-  !rescue(X,Y);       // Go to hospital.                                      // TO SERVER
+    <-  !rescue(X,Y).       // Go to hospital.                                      // TO SERVER
         
 
 +!rescue(X,Y) : true 

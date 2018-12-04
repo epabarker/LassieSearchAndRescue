@@ -100,7 +100,7 @@ public class MapApp extends JFrame {
 					messages.setText("getting map. ");
 					Map mappy = getMap();
 					messages.setText("got map. ");
-					mapCanvas.UpdateMap(mappy);
+					mapCanvas.updateMap(mappy);
 					messages.setText("updated map. ");
 
 					
