@@ -1,15 +1,35 @@
-package net.robotics.mcllocalisation;
+package net.robotics.map;
 
-import net.robotics.map.Tile;
+import net.robotics.map.Tile.TileType;
 
 public class KnownMap {
 	private Tile[][] tiles;
 	private int width, height;	
 	
-	public KnownMap(int width, int height, int[][]oc) {
+	public KnownMap(int width, int height, Tile[] tiles) {
+		this(width, height);
+		int[][] oc = new int[tiles.length][2];
+		for (int i = 0; i < tiles.length; i++) {
+			if(tiles[i].getType() == TileType.Empty){
+				oc[i][0] = tiles[i].getX();
+				oc[i][1] = tiles[i].getY();
+			} else {
+				oc[i][0] = -1;
+				oc[i][1] = -1;
+				this.getTile(tiles[i].getX(), tiles[i].getY()).setType(tiles[i].getType());
+			}
+		}
+		placeObstacles(oc);
+	}
+	
+	public KnownMap(int width, int height) {
 		this.setWidth(width);
 		this.setHeight(height);
 		this.setTiles(width, height);
+	}
+	
+	public KnownMap(int width, int height, int[][]oc) {
+		this(width, height);
 		placeObstacles(oc);
 	}
 	
@@ -32,7 +52,9 @@ public class KnownMap {
 		for (int i = 0; i < oc.length; i++) {
 			int x = oc[i][0];
 			int y = oc[i][1];
-			tiles[x][y].knownObstacle();
+			if(isPointIn(x, y)){
+				tiles[x][y].knownObstacle();
+			}
 		}
 	}
 	
