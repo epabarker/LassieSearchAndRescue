@@ -1,4 +1,4 @@
-// Environment code for project doctor2018
+package asl;
 
 import jason.asSyntax.*;
 import jason.environment.*;
@@ -18,6 +18,7 @@ public class ParamedicEnv extends Environment {
     public static final int GSize = 6; // The bay is a 6x6 grid
     public static final int HOSPITAL  = 8; // hospital code in grid model
     public static final int VICTIM  = 16; // victim code in grid model
+    public static final int ROBOT = 20; // robot code in grid model 
 
     private Logger logger = Logger.getLogger("doctorParamedicConfig."+ParamedicEnv.class.getName());
     
@@ -130,7 +131,7 @@ public class ParamedicEnv extends Environment {
     
    // needs to be configurred for the paramedic agent
     void updatePercepts() {
-        .clearPercepts();
+        clearPercepts();
 
         Location paramedic = model.getAgPos(0);
         Literal pos1 = Literal.parseLiteral("location(r," + paramedic.x + "," + paramedic.y + ")");
@@ -158,7 +159,6 @@ public class ParamedicEnv extends Environment {
 
         private RobotBayModel() {
             super(GSize, GSize, 1);	// The third parameter is the number of agents
-
             // initial location of Obstacles
             // Note that OBSTACLE is defined in the model (value 4), as
             // is AGENT (2), but we have to define our own code for the
@@ -177,35 +177,27 @@ public class ParamedicEnv extends Environment {
         void addObstacle(int x, int y) {
             add(OBSTACLE, x, y);
         }
+        void moveTo(int x, int y) {
+        	Location currentRobotLocation = model.getAgPos(0);
+        	int oldX = currentRobotLocation.x;
+        	int oldY = currentRobotLocation.y;
+        	remove(ROBOT, oldX, oldY);
+        	model.setAgPos(0,x,y);
+        	add(ROBOT, x, y);
+        	updatePercepts();
+        	
+        	//if (currentRobotLocation.x < x) {currentRobotLocation.x = x;}
+        	//else if (currentRobotLocation.x > x){currentRobotLocation.x--;}
+        	//If (currentRobotLocation.y < y) {currentRobotLocation.y++;}
+        	//else (currentRobotLocation.y > y){currentRobotLocation.y--;}
+        }
 
         // ==================================================================================================
         // ================================  FAKE METHODS GO HERE ===========================================
         // ==================================================================================================
         
-        void moveTo(int x, int y) {
-        	Location currentRobotLocation = model.getAgPos(0);
-        	
-        	currentRobotLocation.x = x;
-        	currentRobotLocation.y = y;
-      
-        	updatePercepts();    	
-        	//if (currentRobotLocation.x < x) {currentRobotLocation.x = x;}
-        	//else if (currentRobotLocation.x > x){currentRobotLocation.x--;}
-        	//If (currentRobotLocation.y < y) {currentRobotLocation.y++;}
-        	//else (currentRobotLocation.y > y){currentRobotLocation.y--;}
-        	
-        }
-        
-        void takeVictim() {
-        	Location rob = model.getAgPos();
-        	if (model.hasObject(VICTIM, )) {
-        		updatePercept();
-        		Literal victim = Literal.parseLiteral("victim found in location(r," + VICTIM.x + "," + VICTIM.y + ")");
-        		if (critical) {
-        			moveTo(HOSPITAL.x, HOSPITAL.y)
-        		}
-        	}
-        }
+         
+
     }
     // ======================================================================
     // This is a simple rendering of the map from the actions of the paramedic
@@ -238,6 +230,9 @@ public class ParamedicEnv extends Environment {
             case ParamedicEnv.HOSPITAL:
                 drawHospital(g, x, y);
                 break;
+            case ParamedicEnv.ROBOT:
+                drawRobot(g, x, y);
+                break;
            }
         }
         
@@ -252,6 +247,14 @@ public class ParamedicEnv extends Environment {
             g.setColor(Color.blue);
             drawString(g, x, y, defaultFont, "H");
         }
+        
+        public void drawRobot(Graphics g, int x, int y) {
+            //super.drawObstacle(g, x, y);
+            g.setColor(Color.red);
+            drawString(g, x, y, defaultFont, "R");
+        }
+        
+        
     }
 }
     // ======================================================================
