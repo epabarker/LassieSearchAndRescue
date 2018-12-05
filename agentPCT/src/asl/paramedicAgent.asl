@@ -124,13 +124,22 @@ location(r,1,2)[source(percept)].
 +!intention(X,Y) : ~critical(X,Y) & not allCriticalRescued
     <-  +toBeRescued(X,Y);
     	-location(victim,X,Y);
-    	nextVictim.      // Go to the next victim.                               // TO SERVER
+    	nextVictim.      // Go to the next victim.                              // TO SERVER
     
 // If the victim is non-critical, and all victims have been rescued:
 +!intention(X,Y) : ~critical(X,Y) & allCriticalRescued
-    <-  !rescue(X,Y).       // Go to hospital.                                   // TO SERVER
+    <-  !rescue(X,Y).       // Go to hospital.                                  // TO SERVER
         
-
++!rescue(X,Y) : critical(X,Y) 
+    <-  ?criticalCount(C);
+    	NewCount = C - 1;
+    	+criticalCount(NewCount);
+    	-criticalCount(C);
+    	takeVictim;                                                             // TO SERVER
+        -location(victim,X,Y);                                                     
+        goHospital;                                                            	// TO SERVER
+        dropVictim;                                                            	// TO SERVER
+        +rescued(X,Y).      // Add to the count of rescued victims.
 +!rescue(X,Y) : true 
     <-  takeVictim;                                                              // TO SERVER
         -location(victim,X,Y);                                                     

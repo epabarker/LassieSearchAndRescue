@@ -59,6 +59,7 @@ public class ParamedicEnv extends Environment {
                 int x = (int)((NumberTerm)action.getTerm(0)).solve();
                 int y = (int)((NumberTerm)action.getTerm(1)).solve();
                 model.removeVictim(x,y);
+                victims.remove(0);
                 logger.info("removing victim at: "+x+","+y);
             } else if (action.getFunctor().equals("addToBeRescued")) {
                 int x = (int)((NumberTerm)action.getTerm(0)).solve();
@@ -103,7 +104,7 @@ public class ParamedicEnv extends Environment {
             	int x = loc1.x;
             	int y = loc1.y;
             	model.moveTo(x,y);
-            	logger.info("executing: "+action+", but not implemented!");
+            	logger.info("executing: "+action+", going to next victim!");
             	
             } else if (action.getFunctor().equals("dropVictim")) {
             	// Unassign victim location from robot location
@@ -207,7 +208,14 @@ public class ParamedicEnv extends Environment {
         void addRobot(int x, int y) {
             add(ROBOT, x, y);
         }
+        void removeRobot(int x, int y) {
+            remove(ROBOT, x, y);
+        }
         void moveTo(int x, int y) {
+        	Location rLoc = model.getAgPos(0);
+        	int rx = rLoc.x;
+        	int ry = rLoc.y;
+        	model.removeRobot(rx, ry);
         	model.setAgPos(0,x,y);
         	updatePercepts();
         	//if (currentRobotLocation.x < x) {currentRobotLocation.x = x;}
