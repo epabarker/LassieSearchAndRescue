@@ -18,7 +18,7 @@ public class ParamedicEnv extends Environment {
     public static final int GSize = 6; // The bay is a 6x6 grid
     public static final int HOSPITAL  = 8; // hospital code in grid model
     public static final int VICTIM  = 16; // victim code in grid model
-    public static final int ROBOT = 20; // robot code in grid model 
+    public static final int ROBOT = 4; // robot code in grid model 
 
     private Logger logger = Logger.getLogger("doctorParamedicConfig."+ParamedicEnv.class.getName());
     
@@ -55,7 +55,7 @@ public class ParamedicEnv extends Environment {
                 int x = (int)((NumberTerm)action.getTerm(0)).solve();
                 int y = (int)((NumberTerm)action.getTerm(1)).solve();
                 model.removeVictim(x,y);
-                logger.info("adding obstacle at: "+x+","+y);
+                logger.info("removing victim at: "+x+","+y);
             } else if (action.getFunctor().equals("addObstacle")) {
                 int x = (int)((NumberTerm)action.getTerm(0)).solve();
                 int y = (int)((NumberTerm)action.getTerm(1)).solve();
@@ -66,13 +66,19 @@ public class ParamedicEnv extends Environment {
                 int y = (int)((NumberTerm)action.getTerm(1)).solve();
                 model.addHospital(x,y);
                 logger.info("adding hospital at: "+x+","+y);
-                
+            } else if (action.getFunctor().equals("addRobot")) {
+                int x = (int)((NumberTerm)action.getTerm(0)).solve();
+                int y = (int)((NumberTerm)action.getTerm(1)).solve();
+                model.addRobot(x,y);
+                logger.info("adding robot at: "+x+","+y);
             } else if (action.getFunctor().equals("goHome")) {
-            	// Move robot to hospital square, and run "stop" code. Signify that you have finished. 
+            	// Move robot to hospital square, and run "stop" code. Signify that you have finished.
+            	model.moveTo(0,0);
             	logger.info("executing: "+action+", but not implemented!");
             	
             } else if (action.getFunctor().equals("goHospital")) {
                 // Move robot to hospital square
+            	model.moveTo(0,0);
             	logger.info("executing: "+action+", but not implemented!");
             	
             } else if (action.getFunctor().equals("takeVictim")) {
@@ -105,7 +111,7 @@ public class ParamedicEnv extends Environment {
             */
             
              else {
-                logger.info("executing: "+action+", but not implemented!");
+                logger.info("executing: "+action.getFunctor()+", but not implemented!");
                 return true;
                 // Note that technically we should return false here.  But that could lead to the
                 // following Jason error (for example):
@@ -132,20 +138,12 @@ public class ParamedicEnv extends Environment {
    // needs to be configurred for the paramedic agent
     void updatePercepts() {
         clearPercepts();
-
         Location paramedic = model.getAgPos(0);
         Literal pos1 = Literal.parseLiteral("location(r," + paramedic.x + "," + paramedic.y + ")");
-        
         // String colourSensed = NEED TO ADD COLOUR SENSED HERE. But only actually sense a new colour when the method for sensing is called. 
         // Literal colour = Literal.parseLiteral("colour(" + paramedic.x + "," + paramedic.y + "," + colourSensed + ")");
         // addPercept(colour)
-        addPercept(pos1);
-
-        // Aslam, can you explain what this method is for? Thanks, Ed
-        if (model.hasObject(VICTIM, paramedic)) {
-            
-        }
-       
+        addPercept(pos1);       
     }
 
     /** Called before the end of MAS execution */
@@ -157,16 +155,14 @@ public class ParamedicEnv extends Environment {
     // ======================================================================
     class RobotBayModel extends GridWorldModel {
     	
+    	// Aslam, I think this is only relevant to the garbage robots from the example. 
     	 public static final int MErr = 2; // max error in taking victim
          int nerr; // number of tries of take victim
          boolean victimTaken = false; // whether agent has picked the victim
 
         private RobotBayModel() {
-            super(GSize, GSize, 1);	// The third parameter is the number of agents
-            // initial location of Obstacles
-            // Note that OBSTACLE is defined in the model (value 4), as
-            // is AGENT (2), but we have to define our own code for the
-            // victim and hospital (uses bitmaps, hence powers of 2)
+            super(GSize, GSize, 1);	
+            // Initial position of robot.
         }
         
         void addVictim(int x, int y) {
@@ -181,24 +177,17 @@ public class ParamedicEnv extends Environment {
         void addObstacle(int x, int y) {
             add(OBSTACLE, x, y);
         }
+        void addRobot(int x, int y) {
+            add(ROBOT, x, y);
+        }
         void moveTo(int x, int y) {
-        	Location currentRobotLocation = model.getAgPos(0);
-        	int oldX = currentRobotLocation.x;
-        	int oldY = currentRobotLocation.y;
-        	remove(ROBOT, oldX, oldY);
         	model.setAgPos(0,x,y);
-        	add(ROBOT, x, y);
         	updatePercepts();
-        	
         	//if (currentRobotLocation.x < x) {currentRobotLocation.x = x;}
         	//else if (currentRobotLocation.x > x){currentRobotLocation.x--;}
         	//If (currentRobotLocation.y < y) {currentRobotLocation.y++;}
         	//else (currentRobotLocation.y > y){currentRobotLocation.y--;}
         }
-
-        // ==================================================================================================
-        // ================================  FAKE METHODS GO HERE ===========================================
-        // ==================================================================================================
         
          
 
