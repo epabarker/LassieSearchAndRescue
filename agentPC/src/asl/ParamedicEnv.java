@@ -1,5 +1,3 @@
-package net.robotics.agentSpeak;
-
 // Environment code for project doctor2018
 
 import jason.asSyntax.*;
@@ -8,7 +6,6 @@ import jason.environment.Environment;
 import jason.environment.grid.GridWorldModel;
 import jason.environment.grid.GridWorldView;
 import jason.environment.grid.Location;
-import net.robotics.agentSpeak.ParamedicEnv.RobotBayModel.RobotBayView;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -160,16 +157,22 @@ public class ParamedicEnv extends Environment {
         void moveTo(int x, int y ){
         	
         }
-    
+    }
     // ======================================================================
     // This is a simple rendering of the map from the actions of the paramedic
     // when getting details of the victim and obstacle locations
     // You should not feel that you should use this code, but it can be used to
     // visualise the bay layout, especially in the early parts of your solution.
     // However, you should implement your own code to visualise the map.
+        
     class RobotBayView extends GridWorldView {
 
-        public RobotBayView(RobotBayModel model) {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public RobotBayView(RobotBayModel model) {
             super(model, "COMP329 6x6 Robot Bay", 300);
             defaultFont = new Font("Arial", Font.BOLD, 18); // change default font
             setVisible(true);
@@ -201,6 +204,5 @@ public class ParamedicEnv extends Environment {
             drawString(g, x, y, defaultFont, "H");
         }
     }
+}
     // ======================================================================
-}
-}
