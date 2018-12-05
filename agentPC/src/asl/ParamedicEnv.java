@@ -1,5 +1,3 @@
-// Environment code for project doctor2018
-
 import jason.asSyntax.*;
 import jason.environment.*;
 import jason.environment.Environment;
@@ -130,7 +128,7 @@ public class ParamedicEnv extends Environment {
     
    // needs to be configurred for the paramedic agent
     void updatePercepts() {
-        .clearPercepts();
+      //  .clearPercepts();
 
         Location paramedic = model.getAgPos(0);
         Literal pos1 = Literal.parseLiteral("location(r," + paramedic.x + "," + paramedic.y + ")");
@@ -213,7 +211,15 @@ public class ParamedicEnv extends Environment {
         	}
         }
         
-        
+        void dropVictim() {
+        	 if (victimTaken) {
+                 victimTaken = false;
+                 add(VICTIM, getAgPos(0));
+                 if (model.hasObject(VICTIM, getAgPos(0))) {
+                     remove(VICTIM, getAgPos(0));
+                 }
+             }
+        }
         
         
         
