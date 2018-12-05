@@ -65,25 +65,31 @@ public class ParamedicEnv extends Environment {
                 int y = (int)((NumberTerm)action.getTerm(1)).solve();
                 model.addHospital(x,y);
                 logger.info("adding hospital at: "+x+","+y);
+                
             } else if (action.getFunctor().equals("goHome")) {
             	// Move robot to hospital square, and run "stop" code. Signify that you have finished. 
             	logger.info("executing: "+action+", but not implemented!");
+            	
             } else if (action.getFunctor().equals("goHospital")) {
                 // Move robot to hospital square
             	logger.info("executing: "+action+", but not implemented!");
+            	
             } else if (action.getFunctor().equals("takeVictim")) {
             	// Assign victim location to robot location
             	// Display colour signifying that a victim is being carried
             	logger.info("executing: "+action+", but not implemented!");
+            	
             } else if (action.getFunctor().equals("nextVictim")) {
             	// Calculate closest UNEXPLORED victim location. Once all explored, path find to all UNREESCUED.
             	// Move robot to the closest location.
             	// Once at that location, update percepts, that should trigger a new plan in the robot. 
             	logger.info("executing: "+action+", but not implemented!");
+            	
             } else if (action.getFunctor().equals("dropVictim")) {
             	// Unassign victim location from robot location
             	// Display colour signifying that a victim is no longer being carried
             	logger.info("executing: "+action+", but not implemented!");
+            	
             } else if (action.getFunctor().equals("perceiveColour")) {
             	// I'm not sure if we should have the method to perceive colour situated OUTSIDE of the updatePercepts method. 
             	updatePercepts();
@@ -122,14 +128,39 @@ public class ParamedicEnv extends Environment {
     
     void moveTo(int x, int y) {
     	
+    	Location currentRobotLocation = model.getAgPos();
+    	
+    	currentRobotLocation.x = x;
+    	currentRobotLocation.y = y;
+    	
+    	updatePercepts();    	
+    	//if (currentRobotLocation.x < x) {currentRobotLocation.x = x;}
+    	//else if (currentRobotLocation.x > x){currentRobotLocation.x--;}
+    	
+    	//If (currentRobotLocation.y < y) {currentRobotLocation.y++;}
+    	//else (currentRobotLocation.y > y){currentRobotLocation.y--;}
+    	
+    	
     }
+    
+    void takeVictim() {
+    	Location rob = model.getAgPos();
+    	if (model.hasObject(VICTIM, )) {
+    		updatePercept();
+    		Literal victim = Literal.parseLiteral("victim found in location(r," + VICTIM.x + "," + VICTIM.y + ")");
+    		if (critical) {
+    			moveTo(HOSPITAL.x, HOSPITAL.y)
+    		}
+    	}
+    }
+    
     
     
     
     
    // needs to be configurred for the paramedic agent
     void updatePercepts() {
-        clearPercepts();
+        .clearPercepts();
 
         Location paramedic = model.getAgPos(0);
         Literal pos1 = Literal.parseLiteral("location(r," + paramedic.x + "," + paramedic.y + ")");
