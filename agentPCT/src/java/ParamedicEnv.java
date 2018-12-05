@@ -83,6 +83,7 @@ public class ParamedicEnv extends Environment {
             	// Assign victim location to robot location
             	// Display colour signifying that a victim is being carried
             	logger.info("executing: "+action+", but not implemented!");
+            	model.takeVictim();
             	
             } else if (action.getFunctor().equals("nextVictim")) {
             	// Calculate closest UNEXPLORED victim location. Once all explored, path find to all UNREESCUED.
@@ -94,6 +95,7 @@ public class ParamedicEnv extends Environment {
             	// Unassign victim location from robot location
             	// Display colour signifying that a victim is no longer being carried
             	logger.info("executing: "+action+", but not implemented!");
+            	model.dropVictim();
             	
             } else if (action.getFunctor().equals("perceiveColour")) {
             	// I'm not sure if we should have the method to perceive colour situated OUTSIDE of the updatePercepts method. 
@@ -135,7 +137,8 @@ public class ParamedicEnv extends Environment {
     
    // needs to be configurred for the paramedic agent
     void updatePercepts() {
-        clearPercepts();
+      clearPercepts();
+
         Location paramedic = model.getAgPos(0);
         Literal pos1 = Literal.parseLiteral("location(r," + paramedic.x + "," + paramedic.y + ")");
         // String colourSensed = NEED TO ADD COLOUR SENSED HERE. But only actually sense a new colour when the method for sensing is called. 
@@ -187,8 +190,53 @@ public class ParamedicEnv extends Environment {
         	//else (currentRobotLocation.y > y){currentRobotLocation.y--;}
         }
         
-         
-
+        void takeVictim() {
+        	Location rob = model.getAgPos(0);
+        	if (model.hasObject(VICTIM, rob)) {
+        		 if (random.nextBoolean() || nerr == MErr) {
+                     remove(VICTIM, rob);
+                     nerr = 0;
+                     victimTaken = true;
+                 } else {
+                     nerr++;
+                 }
+        	}
+        }
+        
+       void dropVictim() {
+        	 if (victimTaken) {
+                 victimTaken = false;
+                 add(VICTIM, getAgPos(0));
+                 if (model.hasObject(VICTIM, getAgPos(0))) {
+                     remove(VICTIM, getAgPos(0));
+                 }
+             }
+        }
+       // this is a test method that goes through the 5 scenarios of scanning colors of 5 possible victim locations and adding a percept of what it percieves
+       void perceiveColor() {	   
+    	  
+    	   //to add test if statements with each loaction of victims and returning a string of said color
+    	   Location l1= new Location(2,3);
+    	   Location l2= new Location(4,5);
+    	   Location l3= new Location(5,1);
+    	   
+    	   if (getAgPos(0) == l1) {
+    		   addPercept(Literal.parseLiteral("colour("+2+","+3+",burgandy)" )) ;
+    		   
+    	   } else if (getAgPos(0) == l2) {
+    		   addPercept(Literal.parseLiteral("colour("+4+","+5+",burgandy)"));
+    	   } else if (getAgPos(0) == l3) {
+    		   addPercept(Literal.parseLiteral("colour("+5+","+1+",burgandy)"));
+    	   } else {return ;}
+    	   
+    	   
+    		   
+    		   
+    	 
+       }
+        
+        
+        
     }
     // ======================================================================
     // This is a simple rendering of the map from the actions of the paramedic
