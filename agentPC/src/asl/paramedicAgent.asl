@@ -82,7 +82,7 @@ plays(initiator,doctor).
     <- !requestVictimStatus(doctor,X,Y,C).
 
 +location(r,X,Y) : location(victim,X,Y)
-    <-  perceive(colour);															// TO SERVER
+    <-  perceiveColour;															// TO SERVER
         !checkColour(X,Y).
 
 +!getScenario(D) <- .send(D,askAll,location(_,_,_)).
@@ -93,10 +93,10 @@ plays(initiator,doctor).
      .send(D, tell, requestVictimStatus(X,Y,C)).
 
 +!search : not rescuedAllVictims
-    <-  next(victim);
+    <-  nextVictim;
         !search.
 +!search : rescuedAllVictims
-    <-  go(home).                                                                  // TO SERVER
+    <-  goHome.                                                                  // TO SERVER
 
 +!checkColour(X,Y) : colour(X,Y,burgandy) | colour(X,Y,cyan)
     <-  !requestVictimStatus(D,X,Y,C);
@@ -110,17 +110,17 @@ plays(initiator,doctor).
     
 // If the victim is non-critical, and not all critical victims have been rescued:
 +!intention(X,Y) : ~critical(X,Y) & not allCriticalRescued
-    <-  next(victim).      // Go to the next victim.                               // TO SERVER
+    <-  nextVictim.      // Go to the next victim.                               // TO SERVER
     
 // If the victim is non-critical, and all victims have been rescued:
 +!intention(X,Y) : ~critical(X,Y) & allCriticalRescued
-    <-  !rescue(X,Y).       // Go to hospital.                                     // TO SERVER
+    <-  !rescue(X,Y).       // Go to hospital.                                   // TO SERVER
         
 
 +!rescue(X,Y) : true 
-    <-  take(victim);                                                              // TO SERVER
+    <-  takeVictim;                                                              // TO SERVER
         -location(victim,X,Y);                                                     
-        go(hospital);                                                              // TO SERVER
-        drop(victim);                                                              // TO SERVER
+        goHospital;                                                            // TO SERVER
+        dropVictim;                                                              // TO SERVER
         +rescued(X,Y).      // Add to the count of rescued victims.
     
