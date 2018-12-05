@@ -1,4 +1,4 @@
-package net.robotics.mcllocalisation;
+package net.robotics.communication;
 
 import java.util.ArrayList;
 

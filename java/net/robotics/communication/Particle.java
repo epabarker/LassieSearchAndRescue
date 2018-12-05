@@ -1,4 +1,4 @@
-package net.robotics.mcllocalisation;
+package net.robotics.communication;
 
 public class Particle {
 	private int heading;

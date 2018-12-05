@@ -1,6 +1,6 @@
-package net.robotics.map;
+package net.robotics.communication;
 
-import net.robotics.map.Tile.TileType;
+import net.robotics.communication.Tile.TileType;
 
 public class KnownMap {
 	private Tile[][] tiles;

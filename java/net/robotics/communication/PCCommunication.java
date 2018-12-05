@@ -11,9 +11,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JWindow;
 
-import net.robotics.map.KnownMap;
-import net.robotics.map.Tile;
-import net.robotics.map.Tile.TileType;
+import net.robotics.communication.Tile.TileType;
 
 public class PCCommunication extends JFrame {
 	
