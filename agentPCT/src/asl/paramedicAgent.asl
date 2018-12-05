@@ -8,7 +8,7 @@
 price(_Service,X) :- .random(R) & X = (10*R)+100.
 
 //If all critical have been rescued, this will evaluate as true.
-allCriticalRescued :- .count(.findall(rescued(X,Y) & critical(X,Y)),criticalCount).
+allCriticalRescued :- criticalCount(0).
 
 //If all victim locations have been found, this will evaluate as true. 
 foundAllVictims :- .count(foundV(_,_), 3).
@@ -61,13 +61,16 @@ location(r,1,2)[source(percept)].
     <- .wait(2000);  				// wait for the beliefs to be obtained
        -+startRescueMission(D,C,NC).// replace the mental note
     
++toBeRescued(X,Y): plays(initiator,D)
+	<- .print("Need to come back to",X,",",Y); addToBeRescued(X,Y).  
+    
 +location(r,X,Y)[source(percept)]: plays(initiator,D)
 	<- .print("Robot is at ",X,", ",Y); addRobot(X,Y).
     
 +location(victim,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Victim could be at ",X,", ",Y); addVictim(X,Y).
     
-+location(victim,X,Y)[source(D)]: plays(initiator,D)
+-location(victim,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Victim could be at ",X,", ",Y); removeVictim(X,Y).
 
 +location(obstacle,X,Y)[source(D)]: plays(initiator,D)
@@ -88,19 +91,24 @@ location(r,1,2)[source(percept)].
 +location(r,X,Y) : location(victim,X,Y)
     <-  perceiveColour;															// TO SERVER
         !checkColour(X,Y).
+        
+      
 
 +!getScenario(D) <- .send(D,askAll,location(_,_,_)).
 
 
 +!requestVictimStatus(D,X,Y,C)
     <- .wait(2000);
-     .send(D, tell, requestVictimStatus(X,Y,C)).
+     	.send(D, tell, requestVictimStatus(X,Y,C)).
 
-+!search : not rescuedAllVictims
++!search : not allCriticalRescued
     <-  nextVictim;
         !search.
++!search : not rescuedAllVictims
+    <-  nextToBeRescued;
+    	!search.
 +!search : rescuedAllVictims
-    <-  goHome.                                                                  // TO SERVER
+	<- 	goHome.                                                                 // TO SERVER
 
 +!checkColour(X,Y) : colour(X,Y,burgandy) | colour(X,Y,cyan)
     <-  !requestVictimStatus(D,X,Y,C);
@@ -114,7 +122,9 @@ location(r,1,2)[source(percept)].
     
 // If the victim is non-critical, and not all critical victims have been rescued:
 +!intention(X,Y) : ~critical(X,Y) & not allCriticalRescued
-    <-  nextVictim.      // Go to the next victim.                               // TO SERVER
+    <-  +toBeRescued(X,Y);
+    	-location(victim,X,Y);
+    	nextVictim.      // Go to the next victim.                               // TO SERVER
     
 // If the victim is non-critical, and all victims have been rescued:
 +!intention(X,Y) : ~critical(X,Y) & allCriticalRescued

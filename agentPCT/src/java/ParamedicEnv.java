@@ -8,6 +8,7 @@ import jason.environment.grid.Location;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.util.ArrayList;
 import java.util.logging.*;
 
 
@@ -17,6 +18,9 @@ public class ParamedicEnv extends Environment {
     public static final int HOSPITAL  = 8; // hospital code in grid model
     public static final int VICTIM  = 16; // victim code in grid model
     public static final int ROBOT = 2; // robot code in grid model 
+    
+    private ArrayList<Location> victims = new ArrayList<Location>();
+    private ArrayList<Location> toRescue = new ArrayList<Location>();
 
     private Logger logger = Logger.getLogger("doctorParamedicConfig."+ParamedicEnv.class.getName());
     
@@ -48,11 +52,20 @@ public class ParamedicEnv extends Environment {
                 int x = (int)((NumberTerm)action.getTerm(0)).solve();
                 int y = (int)((NumberTerm)action.getTerm(1)).solve();
                 model.addVictim(x,y);
+                Location loc1 = new Location(x,y);
+                victims.add(loc1);
                 logger.info("adding victim at: "+x+","+y);
             } else if (action.getFunctor().equals("removeVictim")) {
                 int x = (int)((NumberTerm)action.getTerm(0)).solve();
                 int y = (int)((NumberTerm)action.getTerm(1)).solve();
                 model.removeVictim(x,y);
+                logger.info("removing victim at: "+x+","+y);
+            } else if (action.getFunctor().equals("addToBeRescued")) {
+                int x = (int)((NumberTerm)action.getTerm(0)).solve();
+                int y = (int)((NumberTerm)action.getTerm(1)).solve();
+                model.addToBeRescued(x,y);
+                Location loc1 = new Location(x,y);
+                toRescue.add(loc1);
                 logger.info("removing victim at: "+x+","+y);
             } else if (action.getFunctor().equals("addObstacle")) {
                 int x = (int)((NumberTerm)action.getTerm(0)).solve();
@@ -86,9 +99,10 @@ public class ParamedicEnv extends Environment {
             	model.takeVictim();
             	
             } else if (action.getFunctor().equals("nextVictim")) {
-            	// Calculate closest UNEXPLORED victim location. Once all explored, path find to all UNREESCUED.
-            	// Move robot to the closest location.
-            	// Once at that location, update percepts, that should trigger a new plan in the robot. 
+            	Location loc1 = victims.get(0);
+            	int x = loc1.x;
+            	int y = loc1.y;
+            	model.moveTo(x,y);
             	logger.info("executing: "+action+", but not implemented!");
             	
             } else if (action.getFunctor().equals("dropVictim")) {
@@ -100,6 +114,13 @@ public class ParamedicEnv extends Environment {
             } else if (action.getFunctor().equals("perceiveColour")) {
             	// I'm not sure if we should have the method to perceive colour situated OUTSIDE of the updatePercepts method. 
             	updatePercepts();
+            	logger.info("executing: "+action+", but not implemented!");
+            } else if (action.getFunctor().equals("nextToBeRescued")) {
+            	// I'm not sure if we should have the method to perceive colour situated OUTSIDE of the updatePercepts method.
+            	Location loc1 = toRescue.get(0);
+            	int x = loc1.x;
+            	int y = loc1.y;
+            	model.moveTo(x,y);
             	logger.info("executing: "+action+", but not implemented!");
             }
             /*
@@ -166,7 +187,12 @@ public class ParamedicEnv extends Environment {
             // Initial position of robot.
         }
         
-        void addVictim(int x, int y) {
+        void addToBeRescued(int x, int y) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		void addVictim(int x, int y) {
             add(VICTIM, x, y);
         }
         void removeVictim(int x, int y) {
