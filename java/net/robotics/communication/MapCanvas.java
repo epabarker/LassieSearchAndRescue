@@ -9,10 +9,7 @@ import java.awt.Graphics2D;
 
 import javax.swing.JPanel;
 
-import net.robotics.map.KnownMap;
-import net.robotics.map.Map;
-import net.robotics.map.Tile;
-import net.robotics.map.Tile.TileType;
+import net.robotics.communication.Tile.TileType;
 
 public class MapCanvas extends JPanel {
 	private static final long serialVersionUID = 1L;

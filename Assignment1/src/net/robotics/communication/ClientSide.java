@@ -5,9 +5,7 @@ import com.google.gson.Gson;
 //import lejos.hardware.lcd.Font;
 //import lejos.hardware.lcd.GraphicsLCD;
 import net.robotics.main.Robot;
-import net.robotics.map.Tile;
 //import net.robotics.screen.LCDRenderer;
-import net.robotics.map.Map;
 
 import java.awt.*;
 
@@ -20,7 +18,7 @@ public class ClientSide  {
 	 * 
 	 */
 	
-	Map map; Font font;
+	Font font;
 	Graphics2D graph;
 	
 
@@ -38,9 +36,9 @@ public class ClientSide  {
 		DataInputStream dIn = new DataInputStream(in);
 		String str = dIn.readUTF();
 		Gson gson = new Gson();
-		Map loadedMap = gson.fromJson(str, Map.class);
-		System.out.println(loadedMap.canMove(1, 3));
-		System.out.println(loadedMap.canMove(1, 4));
+		//Map loadedMap = gson.fromJson(str, Map.class);
+		//System.out.println(loadedMap.canMove(1, 3));
+		//System.out.println(loadedMap.canMove(1, 4));
 		sock.close();
 		
 		
@@ -50,7 +48,7 @@ public class ClientSide  {
 
 	 
 	 
-	 public void DrawMap(int x, int y,  Map map) {
+	 public void DrawMap(int x, int y) {
 			/*for (int i = 0; i < map.getWidth(); i++) {
 				for (int j = 0; j < map.getHeight(); i++) {
 					Tile tile = map.getTile(i,j);

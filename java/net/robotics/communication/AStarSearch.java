@@ -1,4 +1,4 @@
-package net.robotics.map;
+package net.robotics.communication;
 import java.lang.reflect.Array;
 //import net.robotics.map.*;
 import java.util.ArrayList;
@@ -6,12 +6,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 
-import net.robotics.main.Robot;
-
 public class AStarSearch {
 	
 
-	private Map arena;
+	private KnownMap arena;
 	
 	private class Node{
 		public Tile t;
@@ -57,7 +55,7 @@ public class AStarSearch {
 		}
 	}
 	
-	public AStarSearch(Map arena) {
+	public AStarSearch(KnownMap arena) {
 		this.arena = arena;
  		
 	}
@@ -93,7 +91,7 @@ public class AStarSearch {
 					
 					Node neighbor = new Node(arena.getTile(nX, nY));
 					
-					if(!arena.canMove(nX, nY))
+					if(arena.notObstacle(nX, nY))
 						continue;
 					
 					neighbor.parent = next;
@@ -195,69 +193,7 @@ public class AStarSearch {
 		
 	}
 	
-	public Tile getLeastVisitedNode(){
-		ArrayList<Node> openSet = new ArrayList<Node>();
-		ArrayList<Node> closedSet = new ArrayList<Node>();
-		
-		Tile leastKnownAbout = arena.getTile(arena.getRobotX(), arena.getRobotY());
-		
-		Node startNode = new Node(leastKnownAbout);
-		startNode.setG(0);
-		openSet.add(startNode);
-		
-		while(!openSet.isEmpty()){
-			Node next = openSet.get(0);
-			openSet.remove(next);
-			
-			if(next.t.getViewed() < leastKnownAbout.getViewed())
-				leastKnownAbout = next.t;
-			
-			if(next.t.getX() != arena.getRobotX() && next.t.getY() != arena.getRobotY() 
-					&& leastKnownAbout.getX() == arena.getRobotX() && leastKnownAbout.getY() == arena.getRobotY())
-				leastKnownAbout = next.t;
-			
-			//System.out.print(openSet.size() + ": Chosen " + next.t.getX() + "/" + next.t.getY());
-			
-			for (int x = -1; x < 2; x++) {
-				for (int y = -1; y < 2; y++) {
-					if((x != 0 && y != 0) || (x == y && x == 0))
-						continue;
-					
-					int nX = (next.t.getX()+x);
-					int nY = (next.t.getY()+y);
-					
-					//System.out.print("\n looking at " + x + "/" + y + ", " + nX + "/" + nY + ", " + arena.getWidth() + "/" + arena.getHeight());
-					
-					if(nX<0 || nX>=arena.getWidth() || nY<0 || nY>=arena.getHeight()){
-						//System.out.print(", continued");
-						continue;
-					}
-					
-					if(!arena.canMove(nX, nY))
-						continue;
-					
-					Node neighbor = new Node(arena.getTile(nX, nY));
-					
-					if(isInSet(openSet, neighbor)){
-						//System.out.print(", in open set");
-						continue;
-					} else if(isInSet(closedSet, neighbor)){
-						//System.out.print(", in closed set");
-						continue;
-					}
-						
-					openSet.add(neighbor);
-					
-				}
-			}
-			
-			closedSet.add(next);
-			
-			//System.out.println(".");
-		}
-		
-		return leastKnownAbout;
-	}
+	
 	
 	private int calculateManhatten(int sX, int sY, int eX, int eY) {
 		return Math.abs(sX - eX) + 
@@ -273,10 +209,6 @@ public class AStarSearch {
 		return calculateManhatten(nextTile.getX(), nextTile.getY(), eX, eY);		
 	}
 	
-	private int calculateManhatten(Tile nextTile) {
-		return calculateManhatten(arena.getRobotX(), arena.getRobotY(), nextTile);
-	}
-	
 	private int calculateManhatten(Tile start, Tile goal) {
 		return calculateManhatten(start.getX(), start.getY(), goal);
 	}
@@ -287,10 +219,6 @@ public class AStarSearch {
 	
 	private int calculateManhatten(Node nextTile, int eX, int eY) {
 		return calculateManhatten(nextTile.t, eX, eY);		
-	}
-	
-	private int calculateManhatten(Node nextTile) {
-		return calculateManhatten(arena.getRobotX(), arena.getRobotY(), nextTile);
 	}
 	
 	private int calculateManhatten(Node start, Node goal) {

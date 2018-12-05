@@ -39,7 +39,10 @@ public class ColorSensorMonitor extends Thread{
 	public static enum ColorNames{
 		//GREEN,
 
-		BLUE,
+		CYAN,
+		GREEN,
+		YELLOW,
+		BURGANDY,
 		BLACK,
 		WHITE,
 		//YELLOW,
@@ -49,6 +52,9 @@ public class ColorSensorMonitor extends Thread{
 
 	private static final float[][] ColorRanges = {
 			//{0.15f},
+			{0.005f, 0.005f, 0.01f}, //BLUE Colors
+			{0.005f, 0.005f, 0.01f}, //BLUE Colors
+			{0.005f, 0.005f, 0.01f}, //BLUE Colors
 			{0.005f, 0.005f, 0.01f}, //BLUE Colors
 			{0.2f},
 			{0.2f}

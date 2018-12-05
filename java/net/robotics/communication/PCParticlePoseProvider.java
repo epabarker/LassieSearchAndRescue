@@ -1,9 +1,7 @@
-package net.robotics.mcllocalisation;
+package net.robotics.communication;
 
 import java.util.ArrayList;
 import java.util.Random;
-
-import net.robotics.map.KnownMap;
 
 public class PCParticlePoseProvider {
 	private ParticleSet tSet;

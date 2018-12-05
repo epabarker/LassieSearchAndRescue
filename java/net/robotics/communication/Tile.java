@@ -1,4 +1,4 @@
-package net.robotics.map;
+package net.robotics.communication;
 
 import java.util.ArrayList;
 import java.util.Collection;
