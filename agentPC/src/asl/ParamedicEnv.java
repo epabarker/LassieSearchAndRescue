@@ -156,6 +156,10 @@ public class ParamedicEnv extends Environment {
     
     // ======================================================================
     class RobotBayModel extends GridWorldModel {
+    	
+    	 public static final int MErr = 2; // max error in taking victim
+         int nerr; // number of tries of take victim
+         boolean victimTaken = false; // whether agent has picked the victim
 
         private RobotBayModel() {
             super(GSize, GSize, 1);	// The third parameter is the number of agents
