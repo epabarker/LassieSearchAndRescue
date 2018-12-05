@@ -19,6 +19,7 @@ import lejos.hardware.motor.Motor;
 import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.hardware.port.Port;
 import lejos.hardware.sensor.EV3ColorSensor;
+import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.EV3TouchSensor;
 import lejos.robotics.localization.OdometryPoseProvider;
@@ -34,12 +35,16 @@ import net.robotics.map.Map;
 import net.robotics.screen.LCDRenderer;
 import net.robotics.sensor.ColorSensorMonitor;
 import net.robotics.sensor.ColorSensorMonitor.ColorNames;
+import net.robotics.sensor.GyroMonitor;
 import net.robotics.sensor.UltrasonicSensorMonitor;
 import net.robotics.communication.ServerSide;
 
 public class Robot {
 	public LCDRenderer screen;
+	
 	private ColorSensorMonitor leftColorSensor, rightColorSensor;
+	private GyroMonitor gyroMonitor;
+	
 	private LED led;
 	private SoundMonitor audio;
 	private MovePilot pilot;
@@ -82,6 +87,8 @@ public class Robot {
 		
 		leftColorSensor = new ColorSensorMonitor(this, new EV3ColorSensor(myEV3.getPort("S1")), 16);
 		rightColorSensor = new ColorSensorMonitor(this, new EV3ColorSensor(myEV3.getPort("S4")), 16);
+		gyroMonitor = new GyroMonitor(this, new EV3GyroSensor(myEV3.getPort("S2")), 1);
+		
 		localisation = new Localisation();
 		
 		NXTRegulatedMotor motor = null;
@@ -108,6 +115,8 @@ public class Robot {
 		leftColorSensor.start();
 		
 		rightColorSensor.start();
+		
+		gyroMonitor.start();
 		
 		audio.start();
 	}
@@ -180,7 +189,50 @@ public class Robot {
 	}
 
 	public void mainLoop(){
-		pilot.rotate((Math.random()*15)-30);
+		screen.clearScreen();
+		screen.writeTo(new String[]{
+				"G: " + gyroMonitor.getMedianAngle()
+		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
+		
+		double ar = (Math.random()*15)-30;
+		
+		pilot.rotate(ar);
+		
+		screen.clearScreen();
+		screen.writeTo(new String[]{
+				"M1: " + gyroMonitor.getMedianAngle(),
+				"A: " + ar
+		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
+		
+		Button.waitForAnyPress();
+		
+		screen.clearScreen();
+		screen.writeTo(new String[]{
+				"M2: " + gyroMonitor.getMedianAngle(),
+				"A: " + ar
+		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
+		
+		Button.waitForAnyPress();
+		
+		screen.clearScreen();
+		screen.writeTo(new String[]{
+				"A1: " + gyroMonitor.getAngle(),
+				"A: " + ar
+		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
+		
+		Button.waitForAnyPress();
+		
+		screen.clearScreen();
+		screen.writeTo(new String[]{
+				"1: " + gyroMonitor.rotations[0],
+				"2: " + gyroMonitor.rotations[1],
+				"3: " + gyroMonitor.rotations[2],
+				"4: " + gyroMonitor.rotations[3],
+				"5: " + gyroMonitor.rotations[4],
+				"A: " + ar
+		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
+		
+		/*
 		
 		pilot.setLinearSpeed(4);
 		pilot.setLinearAcceleration(3);
@@ -192,7 +244,7 @@ public class Robot {
 		long timeSince = new Date().getTime();
 		
 		while(true){
-			/*if(new Date().getTime() - timeSince > 200){
+			if(new Date().getTime() - timeSince > 200){
 				timeSince = new Date().getTime();
 				screen.clearScreen();
 				screen.writeTo(new String[]{
@@ -205,7 +257,7 @@ public class Robot {
 						"RG: " + String.format("%.4f, %.4f", rightColorSensor.getGreenColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLG()),
 						"RB: " + String.format("%.4f, %.4f", rightColorSensor.getBlueColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLB()),
 				}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-			}*/
+			}
 			
 			if(leftColorSensor.getColor() == ColorNames.BLACK || rightColorSensor.getColor() == ColorNames.BLACK){
 				if(leftColorSensor.getColor() == ColorNames.BLACK && rightColorSensor.getColor() != ColorNames.BLACK){
@@ -257,6 +309,7 @@ public class Robot {
 		}
 		
 		pilot.travel(-6);
+		*/
 	}
 	
 	public void observe(int heading){

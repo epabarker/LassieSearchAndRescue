@@ -42,9 +42,6 @@ public class ColorSensorMonitor extends Thread{
 		BLUE,
 		BLACK,
 		WHITE,
-		CRITCAL,
-		NONCRITICAL,
-		HOSPITAL,
 		//YELLOW,
 		//RED,
 		UNKNOWN
