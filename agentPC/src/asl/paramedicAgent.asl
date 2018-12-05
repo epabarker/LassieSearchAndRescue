@@ -62,6 +62,9 @@ plays(initiator,doctor).
     
 +location(victim,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Victim could be at ",X,", ",Y); addVictim(X,Y).
+    
++location(victim,X,Y)[source(D)]: plays(initiator,D)
+    <- .print("Victim could be at ",X,", ",Y); removeVictim(X,Y).
 
 +location(obstacle,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Obstacle is at ",X,", ",Y); addObstacle(X,Y).
@@ -79,23 +82,21 @@ plays(initiator,doctor).
     <- !requestVictimStatus(doctor,X,Y,C).
 
 +location(r,X,Y) : location(victim,X,Y)
-    <-  !perceive(colour);
+    <-  perceive(colour);															// TO SERVER
         !checkColour(X,Y).
 
 +!getScenario(D) <- .send(D,askAll,location(_,_,_)).
-
 
 
 +!requestVictimStatus(D,X,Y,C)
     <- .wait(2000);
      .send(D, tell, requestVictimStatus(X,Y,C)).
 
-
 +!search : not rescuedAllVictims
-    <-  !next(victim);
+    <-  next(victim);
         !search.
 +!search : rescuedAllVictims
-    <-  !go(home).                                                                  // TO SERVER
+    <-  go(home).                                                                  // TO SERVER
 
 +!checkColour(X,Y) : colour(X,Y,burgandy) | colour(X,Y,cyan)
     <-  !requestVictimStatus(D,X,Y,C);
@@ -105,19 +106,21 @@ plays(initiator,doctor).
 
 // If the victim is critical:
 +!intention(X,Y) : critical(X,Y)
-    <-  !rescue(X,Y).       // Go to hospital.                                      // TO SERVER
+    <-  !rescue(X,Y).       // Go to hospital.                                      
+    
 // If the victim is non-critical, and not all critical victims have been rescued:
 +!intention(X,Y) : ~critical(X,Y) & not allCriticalRescued
-    <-  !next(victim).      // Go to the next victim.                               // TO SERVER
+    <-  next(victim).      // Go to the next victim.                               // TO SERVER
+    
 // If the victim is non-critical, and all victims have been rescued:
 +!intention(X,Y) : ~critical(X,Y) & allCriticalRescued
-    <-  !rescue(X,Y).       // Go to hospital.                                      // TO SERVER
+    <-  !rescue(X,Y).       // Go to hospital.                                     // TO SERVER
         
 
 +!rescue(X,Y) : true 
-    <-  !take(victim);                                                              // TO SERVER
-        -location(victim,X,Y);                                                      // TO SERVER
-        !go(hospital);                                                              // TO SERVER
-        !drop(victim);                                                              // TO SERVER
+    <-  take(victim);                                                              // TO SERVER
+        -location(victim,X,Y);                                                     
+        go(hospital);                                                              // TO SERVER
+        drop(victim);                                                              // TO SERVER
         +rescued(X,Y).      // Add to the count of rescued victims.
     

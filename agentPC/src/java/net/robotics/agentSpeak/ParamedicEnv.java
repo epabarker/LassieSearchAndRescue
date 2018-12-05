@@ -7,6 +7,7 @@ import jason.environment.*;
 import jason.environment.Environment;
 import jason.environment.grid.GridWorldModel;
 import jason.environment.grid.GridWorldView;
+import jason.environment.grid.Location;
 import net.robotics.agentSpeak.ParamedicEnv.RobotBayModel.RobotBayView;
 
 import java.awt.Color;
@@ -52,6 +53,11 @@ public class ParamedicEnv extends Environment {
                 int y = (int)((NumberTerm)action.getTerm(1)).solve();
                 model.addVictim(x,y);
                 logger.info("adding victim at: "+x+","+y);
+            } else if (action.getFunctor().equals("removeVictim")) {
+                int x = (int)((NumberTerm)action.getTerm(0)).solve();
+                int y = (int)((NumberTerm)action.getTerm(1)).solve();
+                model.removeVictim(x,y);
+                logger.info("adding obstacle at: "+x+","+y);
             } else if (action.getFunctor().equals("addObstacle")) {
                 int x = (int)((NumberTerm)action.getTerm(0)).solve();
                 int y = (int)((NumberTerm)action.getTerm(1)).solve();
@@ -62,11 +68,28 @@ public class ParamedicEnv extends Environment {
                 int y = (int)((NumberTerm)action.getTerm(1)).solve();
                 model.addHospital(x,y);
                 logger.info("adding hospital at: "+x+","+y);
-            } else if (action.getFunctor().equals("nextVictim")) {
+            } else if (action.getFunctor().equals("go(home)")) {
+            	// Move robot to home square 
+            } else if (action.getFunctor().equals("go(hospital)")) {
+                // Move robot to hospital square
+            } else if (action.getFunctor().equals("take(victim)")) {
+            	// Assign victim location to robot location
+            } else if (action.getFunctor().equals("next(victim)")) {
+                // Path find to closest UNFOUND victim, then once all found, path find to UNRESCUED.
+            } else if (action.getFunctor().equals("drop(victim)")) {
+            	// Unassign victim location from robot location
+            } else if (action.getFunctor().equals("perceive(colour)")) {
+            	updatePercepts();
+            }
+            /*
+            else if (action.getFunctor().equals("nextVictim")) {
                 model.moveTo(x,y);
             } else if ((action.getFunctor().equals("savePerceptBelief")) {
                 model.updatePercepts();
-            } else {
+            }
+            */
+            
+             else {
                 logger.info("executing: "+action+", but not implemented!");
                 return true;
                 // Note that technically we should return false here.  But that could lead to the
@@ -90,13 +113,16 @@ public class ParamedicEnv extends Environment {
         clearPercepts();
 
         Location paramedic = model.getAgPos(0);
-        
         Literal pos1 = Literal.parseLiteral("location(r," + paramedic.x + "," + paramedic.y + ")");
-    
+        
+        // String colourSensed = NEED TO ADD COLOUR SENSED HERE. But only actually sense a new colour when the method for sensing is called. 
+        // Literal colour = Literal.parseLiteral("colour(" + paramedic.x + "," + paramedic.y + "," + colourSensed + ")");
+        // addPercept(colour)
         addPercept(pos1);
 
+        // Aslam, can you explain what this method is for? Thanks, Ed
         if (model.hasObject(VICTIM, paramedic)) {
-            addPercept(foundV);
+            
         }
        
     }
@@ -122,16 +148,18 @@ public class ParamedicEnv extends Environment {
         void addVictim(int x, int y) {
             add(VICTIM, x, y);
         }
+        void removeVictim(int x, int y) {
+        	remove(VICTIM, x, y);
+        }
         void addHospital(int x, int y) {
             add(HOSPITAL, x, y);
         }
         void addObstacle(int x, int y) {
             add(OBSTACLE, x, y);
         }
-
         void moveTo(int x, int y ){
         	
-    }
+        }
     
     // ======================================================================
     // This is a simple rendering of the map from the actions of the paramedic
