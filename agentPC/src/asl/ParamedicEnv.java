@@ -122,37 +122,7 @@ public class ParamedicEnv extends Environment {
         return true;       
     }
     
-    // ==================================================================================================
-    // ================================  FAKE METHODS GO HERE ===========================================
-    // ==================================================================================================
     
-    void moveTo(int x, int y) {
-    	
-    	Location currentRobotLocation = model.getAgPos();
-    	
-    	currentRobotLocation.x = x;
-    	currentRobotLocation.y = y;
-    	
-    	updatePercepts();    	
-    	//if (currentRobotLocation.x < x) {currentRobotLocation.x = x;}
-    	//else if (currentRobotLocation.x > x){currentRobotLocation.x--;}
-    	
-    	//If (currentRobotLocation.y < y) {currentRobotLocation.y++;}
-    	//else (currentRobotLocation.y > y){currentRobotLocation.y--;}
-    	
-    	
-    }
-    
-    void takeVictim() {
-    	Location rob = model.getAgPos();
-    	if (model.hasObject(VICTIM, )) {
-    		updatePercept();
-    		Literal victim = Literal.parseLiteral("victim found in location(r," + VICTIM.x + "," + VICTIM.y + ")");
-    		if (critical) {
-    			moveTo(HOSPITAL.x, HOSPITAL.y)
-    		}
-    	}
-    }
     
     
     
@@ -207,8 +177,34 @@ public class ParamedicEnv extends Environment {
         void addObstacle(int x, int y) {
             add(OBSTACLE, x, y);
         }
-        void moveTo(int x, int y ){
+
+        // ==================================================================================================
+        // ================================  FAKE METHODS GO HERE ===========================================
+        // ==================================================================================================
+        
+        void moveTo(int x, int y) {
+        	Location currentRobotLocation = model.getAgPos(0);
         	
+        	currentRobotLocation.x = x;
+        	currentRobotLocation.y = y;
+      
+        	updatePercepts();    	
+        	//if (currentRobotLocation.x < x) {currentRobotLocation.x = x;}
+        	//else if (currentRobotLocation.x > x){currentRobotLocation.x--;}
+        	//If (currentRobotLocation.y < y) {currentRobotLocation.y++;}
+        	//else (currentRobotLocation.y > y){currentRobotLocation.y--;}
+        	
+        }
+        
+        void takeVictim() {
+        	Location rob = model.getAgPos();
+        	if (model.hasObject(VICTIM, )) {
+        		updatePercept();
+        		Literal victim = Literal.parseLiteral("victim found in location(r," + VICTIM.x + "," + VICTIM.y + ")");
+        		if (critical) {
+        			moveTo(HOSPITAL.x, HOSPITAL.y)
+        		}
+        	}
         }
     }
     // ======================================================================
