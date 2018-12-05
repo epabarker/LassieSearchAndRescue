@@ -155,6 +155,10 @@ public class ParamedicEnv extends Environment {
     
     // ======================================================================
     class RobotBayModel extends GridWorldModel {
+    	
+    	 public static final int MErr = 2; // max error in taking victim
+         int nerr; // number of tries of take victim
+         boolean victimTaken = false; // whether agent has picked the victim
 
         private RobotBayModel() {
             super(GSize, GSize, 1);	// The third parameter is the number of agents
@@ -197,15 +201,23 @@ public class ParamedicEnv extends Environment {
         }
         
         void takeVictim() {
-        	Location rob = model.getAgPos();
-        	if (model.hasObject(VICTIM, )) {
-        		updatePercept();
-        		Literal victim = Literal.parseLiteral("victim found in location(r," + VICTIM.x + "," + VICTIM.y + ")");
-        		if (critical) {
-        			moveTo(HOSPITAL.x, HOSPITAL.y)
-        		}
+        	Location rob = model.getAgPos(0);
+        	if (model.hasObject(VICTIM, rob)) {
+        		 if (random.nextBoolean() || nerr == MErr) {
+                     remove(VICTIM, rob);
+                     nerr = 0;
+                     victimTaken = true;
+                 } else {
+                     nerr++;
+                 }
         	}
         }
+        
+        
+        
+        
+        
+        
     }
     // ======================================================================
     // This is a simple rendering of the map from the actions of the paramedic
