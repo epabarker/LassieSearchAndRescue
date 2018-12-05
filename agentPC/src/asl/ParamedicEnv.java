@@ -77,6 +77,7 @@ public class ParamedicEnv extends Environment {
             	// Assign victim location to robot location
             	// Display colour signifying that a victim is being carried
             	logger.info("executing: "+action+", but not implemented!");
+            	model.takeVictim();
             	
             } else if (action.getFunctor().equals("nextVictim")) {
             	// Calculate closest UNEXPLORED victim location. Once all explored, path find to all UNREESCUED.
@@ -88,6 +89,7 @@ public class ParamedicEnv extends Environment {
             	// Unassign victim location from robot location
             	// Display colour signifying that a victim is no longer being carried
             	logger.info("executing: "+action+", but not implemented!");
+            	model.dropVictim();
             	
             } else if (action.getFunctor().equals("perceiveColour")) {
             	// I'm not sure if we should have the method to perceive colour situated OUTSIDE of the updatePercepts method. 
@@ -211,7 +213,7 @@ public class ParamedicEnv extends Environment {
         	}
         }
         
-        void dropVictim() {
+       void dropVictim() {
         	 if (victimTaken) {
                  victimTaken = false;
                  add(VICTIM, getAgPos(0));
@@ -221,6 +223,13 @@ public class ParamedicEnv extends Environment {
              }
         }
         
+       void percieveColor() {
+    	   if (model.hasObject(VICTIM, getAgPos(0))) {
+    		   //to add test if statements with each loaction of victims and returning a string of said color
+    		   return VICTIM
+    		   
+    	   }
+       }
         
         
         
