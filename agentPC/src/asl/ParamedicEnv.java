@@ -222,13 +222,27 @@ public class ParamedicEnv extends Environment {
                  }
              }
         }
-        
-       void percieveColor() {
-    	   if (model.hasObject(VICTIM, getAgPos(0))) {
-    		   //to add test if statements with each loaction of victims and returning a string of said color
-    		   return VICTIM
+       // this is a test method that goes through the 5 scenarios of scanning colors of 5 possible victim locations and adding a percept of what it percieves
+       void perceiveColor() {	   
+    	  
+    	   //to add test if statements with each loaction of victims and returning a string of said color
+    	   Location l1= new Location(2,3);
+    	   Location l2= new Location(4,5);
+    	   Location l3= new Location(5,1);
+    	   
+    	   if (getAgPos(0) == l1) {
+    		   addPercept(Literal.parseLiteral("colour("+2+","+3+",burgandy)" )) ;
     		   
-    	   }
+    	   } else if (getAgPos(0) == l2) {
+    		   addPercept(Literal.parseLiteral("colour("+4+","+5+",burgandy)"));
+    	   } else if (getAgPos(0) == l3) {
+    		   addPercept(Literal.parseLiteral("colour("+5+","+1+",burgandy)"));
+    	   } else {return ;}
+    	   
+    	   
+    		   
+    		   
+    	 
        }
         
         
