@@ -1,6 +1,4 @@
-package net.robotics.mcllocalisation;
-
-import net.robotics.map.KnownMap;
+package net.robotics.communication;
 
 public class testMCL {
 	private static PCParticlePoseProvider particlePP;

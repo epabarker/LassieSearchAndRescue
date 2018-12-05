@@ -12,8 +12,6 @@ import lejos.hardware.lcd.GraphicsLCD;
 import java.io.*;
 import net.robotics.screen.LCDRenderer;
 import net.robotics.main.Robot;
-import net.robotics.map.Map;
-import net.robotics.map.Tile;
 import net.robotics.screen.*;
 //import net.robotics.
 
@@ -66,7 +64,7 @@ public class ServerSide extends Thread{
 					out = new DataOutputStream(client.getOutputStream());
 				}
 				
-				out.writeUTF(gson.toJson(Robot.current.getMap()));
+				//out.writeUTF(gson.toJson(Robot.current.getMap()));
 				out.flush();
 			} 
 			catch(IOException e){

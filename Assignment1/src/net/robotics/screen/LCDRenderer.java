@@ -14,8 +14,6 @@ import lejos.hardware.lcd.Font;
 import lejos.hardware.lcd.GraphicsLCD;
 import lejos.hardware.lcd.Image;
 import net.robotics.main.Robot;
-import net.robotics.map.Map;
-import net.robotics.map.Tile;
 
 //Screen Width 178, Height 128; 
 
@@ -249,77 +247,6 @@ public class LCDRenderer{
 		writeTo(content, getWidth()/2, 0, GraphicsLCD.HCENTER);
 	}
 
-
-	private String tileContent(Tile t){
-		switch (mode) {
-		case OccupancyBelief:
-			return Math.round(t.getOccupiedBelief()*100f)+"";
-		case VisitInfo:
-			return t.getViewed()-t.getEmpty() + "/" + t.getViewed();
-		case Nothing:
-		default:
-			return "";
-		}
-		
-	}
-
-	public void drawMap(int x, int y, Map map){
-		writeTo(new String[]{
-				"X: " + map.getRobotX(),
-				"Y: " + map.getRobotY(),
-				"H: " + map.getRobotHeading(),
-				"V: " + map.getTile(map.getRobotX(), map.getRobotY()).getViewed(),
-				"E: " + map.getTile(map.getRobotX(), map.getRobotY()).getEmpty(),
-				"Vs: " + map.getTile(map.getRobotX(), map.getRobotY()).getVisitAmount()
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-
-		for (int tileX = 0; tileX < map.getWidth(); tileX++) {
-			for (int tileY = 0; tileY < map.getHeight(); tileY++) {
-				Tile tile = map.getTile(tileX,tileY);
-
-				int tileDX = x+(tile.getX()*16);
-				int tileDY = y+(map.getHeight()*16)-(tile.getY()*16);
-
-				if(tile.getVisitAmount() < 1)
-					lcd.setStrokeStyle(GraphicsLCD.DOTTED);
-				else
-					lcd.setStrokeStyle(GraphicsLCD.SOLID);
-
-				if(!map.canMove(tileX, tileY)) {
-					lcd.fillRect(tileDX, tileDY, 16, 16);
-				} else {
-					lcd.drawRect(tileDX, tileDY, 16, 16);
-				}
-
-
-				if(tileX == map.getRobotX() && tileY == map.getRobotY()){
-					Font f = lcd.getFont();
-					lcd.setFont(Font.getDefaultFont());
-
-					if(map.getRobotHeading() == 0)
-						drawImage(tileDX, tileDY, up);
-
-					if(map.getRobotHeading() == 1)
-						drawImage(tileDX, tileDY, right);
-
-					if(map.getRobotHeading() == 2)
-						drawImage(tileDX, tileDY, down);
-
-					if(map.getRobotHeading() == 3)
-						drawImage(tileDX, tileDY, left);
-
-					lcd.setFont(f);
-				} else {
-					Font f = lcd.getFont();
-					lcd.setFont(Font.getSmallFont());
-					lcd.drawString(tileContent(tile), tileDX + 2,  tileDY + 4, GraphicsLCD.VCENTER, !map.canMove(tileX, tileY));
-					//lcd.drawString(tile.getEmpty() + "" + tile.getViewed(), x+(tile.getX()*16) + 2, y+(map.getHeight()*16)-(tile.getY()*16)+ 4, GraphicsLCD.VCENTER, ob >= Robot.current._OCCUPIEDBELIEFCUTOFF);
-					lcd.setFont(f);
-				}
-			}
-		}
-
-	}
 
 	private void drawImage(int dx, int dy, BufferedImage im){
 		for (int x = 0; x < im.getWidth(); x++) {
