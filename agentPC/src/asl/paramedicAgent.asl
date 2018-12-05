@@ -2,7 +2,7 @@
 // Initial beliefs and rules
 // ========================================================================
 //***** get location from robot, store in
-// location(r, X,Y)
+
 
 
 price(_Service,X) :- .random(R) & X = (10*R)+100.
@@ -18,6 +18,7 @@ rescuedAllVictims :- .count(rescued(_,_), 3).
 
 plays(initiator,doctor).
 
+location(r,1,2)[source(percept)].
 
 // ========================================================================
 // Plan Library
@@ -59,6 +60,9 @@ plays(initiator,doctor).
 +startRescueMission(D,C,NC)
     <- .wait(2000);  				// wait for the beliefs to be obtained
        -+startRescueMission(D,C,NC).// replace the mental note
+    
++location(r,X,Y)[source(percept)]: plays(initiator,D)
+	<- .print("Robot is at ",X,", ",Y); addRobot(X,Y).
     
 +location(victim,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Victim could be at ",X,", ",Y); addVictim(X,Y).
