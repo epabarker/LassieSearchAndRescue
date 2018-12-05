@@ -19,3 +19,7 @@ Assignment1/.recommenders/*
 *.prefs
 
 agentPC/.classpath
+
+agentPCT/\.classpath
+
+agentPCT/\.project

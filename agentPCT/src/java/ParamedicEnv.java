@@ -1,5 +1,3 @@
-package asl;
-
 import jason.asSyntax.*;
 import jason.environment.*;
 import jason.environment.Environment;
@@ -18,7 +16,7 @@ public class ParamedicEnv extends Environment {
     public static final int GSize = 6; // The bay is a 6x6 grid
     public static final int HOSPITAL  = 8; // hospital code in grid model
     public static final int VICTIM  = 16; // victim code in grid model
-    public static final int ROBOT = 4; // robot code in grid model 
+    public static final int ROBOT = 2; // robot code in grid model 
 
     private Logger logger = Logger.getLogger("doctorParamedicConfig."+ParamedicEnv.class.getName());
     

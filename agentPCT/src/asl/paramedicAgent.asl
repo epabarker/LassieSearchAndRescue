@@ -8,7 +8,7 @@
 price(_Service,X) :- .random(R) & X = (10*R)+100.
 
 //If all critical have been rescued, this will evaluate as true.
-allCriticalRescued :- .count(cRescued(_,_), CRITICALCOUNT).
+allCriticalRescued :- .count(.findall(rescued(X,Y) & critical(X,Y)),criticalCount).
 
 //If all victim locations have been found, this will evaluate as true. 
 foundAllVictims :- .count(foundV(_,_), 3).
@@ -53,7 +53,7 @@ location(r,1,2)[source(percept)].
 							  location(obstacle,_,_)
     <- .count(location(victim,_,_),Vcount);		// Determine the victims
        .count(location(obstacle,_,_),Ocount);	// Determine the obstacles
-       CRITICALCOUNT = C;
+       +criticalCount(C);
        !search;
        .print("Start the Resuce mission for ",C," critical and ",NC, " non-critical victims; Hospital is at (",X,",",Y,"), and we have ", Vcount, " victims and ", Ocount," known obstacles").
    
