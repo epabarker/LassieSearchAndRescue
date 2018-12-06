@@ -63,17 +63,24 @@ location(r,1,2)[source(percept)].
     
 +toBeRescued(X,Y): plays(initiator,D)
 	<- .print("Need to come back to",X,",",Y); addToBeRescued(X,Y).  
-   
+ 
+@r
++location(r,X,Y) : plays(initiator,D) & location(victim,X,Y)
+    <-  addRobot(X,Y);
+    	perceiveColour;															// TO SERVER
+    	.wait(2000);
+        !checkColour(X,Y).
 @alr
 +location(r,X,Y)[source(percept)]: plays(initiator,D)
 	<- .print("Robot is at ",X,", ",Y); addRobot(X,Y).
+
 
 @alv  
 +location(victim,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Victim could be at ",X,", ",Y); addVictim(X,Y).
     
 @rlv
--location(victim,X,Y)[source(D)]: plays(initiator,D)
+-location(victim,X,Y): plays(initiator,D)
     <- .print("Victim could be at ",X,", ",Y); removeVictim(X,Y).
 
 @alo
@@ -95,10 +102,7 @@ location(r,1,2)[source(percept)].
 //+colour(X,Y,C): true
 //    <- !requestVictimStatus(doctor,X,Y,C).
 
-@r
-+location(r,X,Y) : location(victim,X,Y)
-    <-  perceiveColour;															// TO SERVER
-        !checkColour(X,Y).
+
         
       
 @getScenario
@@ -106,24 +110,32 @@ location(r,1,2)[source(percept)].
 
 @requestVictimStatus
 +!requestVictimStatus(D,X,Y,C)
-    <- .wait(2000);
-     	.send(D, tell, requestVictimStatus(X,Y,C)).
+    <- 	.send(D, tell, requestVictimStatus(X,Y,C));
+    	.wait(2000).
 @search
 +!search : not allCriticalRescued
     <-  nextVictim;
+    	.wait(2000);
         !search.
 +!search : not rescuedAllVictims
     <-  nextToBeRescued;
+    	.wait(2000);
     	!search.
 +!search : rescuedAllVictims
 	<- 	goHome.                                                                 // TO SERVER
 
 @checkColour
-+!checkColour(X,Y) : colour(X,Y,burgandy) | colour(X,Y,cyan)
-    <-  !requestVictimStatus(D,X,Y,C);
++!checkColour(X,Y) : colour(X,Y,burgandy)
+    <-  .print("Colour recognised as victim");
+    	!requestVictimStatus(doctor,X,Y,burgandy);
+        !intention(X,Y).
++!checkColour(X,Y) : colour(X,Y,cyan)
+    <-  .print("Colour recognised as victim");
+    	!requestVictimStatus(doctor,X,Y,cyan);
         !intention(X,Y).
 +!checkColour(X,Y) : not (colour(X,Y,burgandy) | colour(X,Y,cyan))
-    <-  -location(victim,X,Y).
+    <-  .print("Colour not recognised as victim");
+    	-location(victim,X,Y)[source(doctor)].
 
 // If the victim is critical:
 @intention
@@ -133,7 +145,7 @@ location(r,1,2)[source(percept)].
 // If the victim is non-critical, and not all critical victims have been rescued:
 +!intention(X,Y) : ~critical(X,Y) & not allCriticalRescued
     <-  +toBeRescued(X,Y);
-    	-location(victim,X,Y);
+    	-location(victim,X,Y)[source(doctor)];
     	nextVictim.      // Go to the next victim.                              // TO SERVER
     
 // If the victim is non-critical, and all victims have been rescued:
@@ -147,13 +159,13 @@ location(r,1,2)[source(percept)].
     	+criticalCount(NewCount);
     	-criticalCount(C);
     	takeVictim;                                                             // TO SERVER
-        -location(victim,X,Y);                                                     
+        -location(victim,X,Y)[source(doctor)];                                                     
         goHospital;                                                            	// TO SERVER
         dropVictim;                                                            	// TO SERVER
         +rescued(X,Y).      // Add to the count of rescued victims.
 +!rescue(X,Y) : true 
     <-  takeVictim;                                                              // TO SERVER
-        -location(victim,X,Y);                                                     
+        -location(victim,X,Y)[source(doctor)];                                                     
         goHospital;                                                            // TO SERVER
         dropVictim;                                                              // TO SERVER
         +rescued(X,Y).      // Add to the count of rescued victims.
