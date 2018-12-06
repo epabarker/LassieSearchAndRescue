@@ -54,8 +54,8 @@ location(r,1,2)[source(percept)].
     <- .count(location(victim,_,_),Vcount);		// Determine the victims
        .count(location(obstacle,_,_),Ocount);	// Determine the obstacles
        +criticalCount(C);
-       !search;
-       .print("Start the Resuce mission for ",C," critical and ",NC, " non-critical victims; Hospital is at (",X,",",Y,"), and we have ", Vcount, " victims and ", Ocount," known obstacles").
+       .print("Start the Resuce mission for ",C," critical and ",NC, " non-critical victims; Hospital is at (",X,",",Y,"), and we have ", Vcount, " victims and ", Ocount," known obstacles");
+       !search.
    
 +startRescueMission(D,C,NC)
     <- .wait(2000);  				// wait for the beliefs to be obtained
@@ -65,7 +65,7 @@ location(r,1,2)[source(percept)].
 	<- .print("Need to come back to",X,",",Y); addToBeRescued(X,Y).  
  
 @r
-+location(r,X,Y) : plays(initiator,D) & location(victim,X,Y)
++location(r,X,Y) : plays(initiator,D) & location(victim,X,Y) & not carrying(victim)
     <-  addRobot(X,Y);
     	perceiveColour;															// TO SERVER
     	.wait(2000);
@@ -102,7 +102,11 @@ location(r,1,2)[source(percept)].
 //+colour(X,Y,C): true
 //    <- !requestVictimStatus(doctor,X,Y,C).
 
-
++carrying(victim): true
+	<-	takeVictim.
+	
+-carrying(victim): true
+	<-	dropVictim.
         
       
 @getScenario
@@ -160,15 +164,15 @@ location(r,1,2)[source(percept)].
     	NewCount = C - 1;
     	+criticalCount(NewCount);
     	-criticalCount(C);
-    	takeVictim;                                                             // TO SERVER
+    	+carrying(victim);                                                              // TO SERVER
         -location(victim,X,Y)[source(doctor)];                                                     
         goHospital;                                                            	// TO SERVER
-        dropVictim;                                                            	// TO SERVER
+        -carrying(victim);                                                          	// TO SERVER
         +rescued(X,Y).      // Add to the count of rescued victims.
 +!rescue(X,Y) : true 
-    <-  takeVictim;                                                              // TO SERVER
+    <-  +carrying(victim);                                                              // TO SERVER
         -location(victim,X,Y)[source(doctor)];                                                     
         goHospital;                                                            // TO SERVER
-        dropVictim;                                                              // TO SERVER
+        -carrying(victim);                                                              // TO SERVER
         +rescued(X,Y).      // Add to the count of rescued victims.
     

@@ -98,7 +98,7 @@ public class ParamedicEnv extends Environment {
             	// Assign victim location to robot location
             	// Display colour signifying that a victim is being carried
             	logger.info("executing: "+action+", picking up victim");
-            	model.takeVictim();
+            	takeVictim();
             	
             } else if (action.getFunctor().equals("nextVictim")) {
             	Location loc1 = victims.get(0);
@@ -111,7 +111,7 @@ public class ParamedicEnv extends Environment {
             	// Unassign victim location from robot location
             	// Display colour signifying that a victim is no longer being carried
             	logger.info("executing: "+action+", dropping victim at hospital");
-            	model.dropVictim();
+            	dropVictim();
             	
             } else if (action.getFunctor().equals("perceiveColour")) {
             	// I'm not sure if we should have the method to perceive colour situated OUTSIDE of the updatePercepts method. 
@@ -184,6 +184,14 @@ public class ParamedicEnv extends Environment {
     	//else (currentRobotLocation.y > y){currentRobotLocation.y--;}
     }
     
+   void takeVictim() {
+    	// Switch light on to say we are carrying victim
+    }
+    
+   void dropVictim() {
+    	// Switch light off to say we are not carrying a victim
+    }
+    
 
     /** Called before the end of MAS execution */
     @Override
@@ -228,28 +236,7 @@ public class ParamedicEnv extends Environment {
         }
         
         
-        void takeVictim() {
-        	Location rob = model.getAgPos(0);
-        	if (model.hasObject(VICTIM, rob)) {
-        		 if (random.nextBoolean() || nerr == MErr) {
-                     remove(VICTIM, rob);
-                     nerr = 0;
-                     victimTaken = true;
-                 } else {
-                     nerr++;
-                 }
-        	}
-        }
         
-       void dropVictim() {
-        	 if (victimTaken) {
-                 victimTaken = false;
-                 add(VICTIM, getAgPos(0));
-                 if (model.hasObject(VICTIM, getAgPos(0))) {
-                     remove(VICTIM, getAgPos(0));
-                 }
-             }
-        }
        // this is a test method that goes through the 5 scenarios of scanning colors of 5 possible victim locations and adding a percept of what it percieves
        void perceiveColor() {	   
     	  
