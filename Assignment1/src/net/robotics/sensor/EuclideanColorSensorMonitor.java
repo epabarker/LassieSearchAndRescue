@@ -25,16 +25,12 @@ public class EuclideanColorSensorMonitor{
 	private static int measures = 500;
 
 	public static enum ColorNames{
-		//GREEN,
-
 		CYAN,
 		GREEN,
 		YELLOW,
 		BURGANDY,
 		BLACK,
 		WHITE,
-		//YELLOW,
-		//RED,
 		UNKNOWN
 	}
 

@@ -1,0 +1,13 @@
+MAS agentPCT {
+
+	infrastructure: Centralised
+	
+	environment: ParamedicEnv
+
+	agents:
+		paramedicAgent;
+		doctor;
+
+	aslSourcePath:
+		"src/asl";
+}

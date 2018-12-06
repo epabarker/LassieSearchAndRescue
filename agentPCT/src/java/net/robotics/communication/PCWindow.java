@@ -4,14 +4,19 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.PrintStream;
 import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JWindow;
 
 import net.robotics.communication.Tile.TileType;
+import net.robotics.components.RobotInfoPane;
+import net.robotics.console.TextAreaOutputStream;
 
 public class PCWindow extends JFrame {
 	
@@ -40,16 +45,25 @@ public class PCWindow extends JFrame {
 		button.setPreferredSize(new Dimension(300, 500));
 		pane.add(button, BorderLayout.PAGE_START);
 		
-		button = new JButton("Robot Info");
-		button.setPreferredSize(new Dimension(300, 100));
-		pane.add(button, BorderLayout.CENTER);
+		RobotInfoPane robotInfo = new RobotInfoPane();
+		robotInfo.setPreferredSize(new Dimension(300, 100));
+		pane.add(robotInfo, BorderLayout.CENTER);
 		
 		pane = new JPanel(new BorderLayout());
 		add(pane, BorderLayout.CENTER);
 		
-		button = new JButton("Agentspeak display");
-		button.setPreferredSize(new Dimension(600, 300));
-		pane.add(button, BorderLayout.PAGE_START);
+		
+		JTextArea txtArea = new JTextArea();
+		PrintStream con=new PrintStream(new TextAreaOutputStream(txtArea));
+		System.setOut(con);
+		System.setErr(con);
+		
+		JScrollPane scroll = new JScrollPane (txtArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		
+		txtArea.setEditable(false);
+		
+		scroll.setPreferredSize(new Dimension(600, 300));
+		pane.add(scroll, BorderLayout.PAGE_START);
 
 		//Make the center component big, since that's the
 		//typical usage of BorderLayout.
@@ -70,6 +84,8 @@ public class PCWindow extends JFrame {
 				new Tile(1, 2, TileType.Victim),
 				new Tile(2, 2),
 		}));
+		
+		System.out.println("TEST");
 		
 		//map.UpdateMap(new KnownMap(6,6));
 	}

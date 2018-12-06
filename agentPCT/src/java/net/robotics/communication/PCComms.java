@@ -10,62 +10,58 @@ import java.util.Scanner;
 
 public class PCComms extends Thread {
 
-    private static final int PORT = 9001;
-    private static final String ADDRESS = "192.168.70.64";
-	
-    private Socket socket;
-    private BufferedReader input;
-    private PrintWriter output;
-    
-    private int id;
-    
-    public PCComms(String serverAddress, int id){
-    	this.id = id;
-    	try {
-        	this.socket = new Socket(serverAddress, PORT);
-            input = new BufferedReader(
-                new InputStreamReader(socket.getInputStream()));
-            output = new PrintWriter(socket.getOutputStream(), true);
-            output.println("WELCOME Robot");
-            output.println("MESSAGE Waiting for opponent to connect");
-        } catch (IOException e) {
-            System.out.println(id + "IO Error: " + e);
-        }
+	private static final int PORT = 9001;
+	private static final String ADDRESS = "192.168.70.64";
+
+	private Socket socket;
+	private BufferedReader input;
+	private PrintWriter output;
+
+	private int id;
+
+	public PCComms(String serverAddress, int id) throws IOException{
+		this.id = id;
+		this.socket = new Socket(serverAddress, PORT);
+		input = new BufferedReader(
+				new InputStreamReader(socket.getInputStream()));
+		output = new PrintWriter(socket.getOutputStream(), true);
+		output.println("WELCOME Robot");
+		output.println("MESSAGE Waiting for opponent to connect");
 		System.out.println("INITING...");
-    }
-	
+	}
+
 	public synchronized void start() {
 		System.out.println("STARTING...");
 		super.start();
 	}
-	
+
 	public void sendCommand(String command){
-        output.println(command);
+		output.println(command);
 	}
-	
+
 	public void handleCommands(String command){
 		if(command.contains("COLOR")){
 			System.out.println("C " + command);
 			return;
 		}
-		
+
 		if(command.contains("MOVESUCCESS")){
 			System.out.println("M " + command);
 			return;
 		}
-		
+
 		if(command.contains("DIST")){
 			System.out.println("F " + command);
 			return;
 		}
-		
+
 		System.out.println("UNKNOWN COMMAND: " + command);
 	}
 
 	@Override
 	public void run() {
 		System.out.println("STARTED ON " + socket.getInetAddress() + ":" + socket.getPort());
-		
+
 		while(true){
 			String text;
 			try {
@@ -78,14 +74,14 @@ public class PCComms extends Thread {
 			}
 		}
 	}
-	
+
 	public static void main(String[] args){
 		System.out.println("MAIN START...");
 		PCComms pc;
-			System.out.println("SERVER SOCKET WAITING...");
-			
+		System.out.println("SERVER SOCKET WAITING...");
+
+		try {
 			pc = new PCComms(ADDRESS, 0);
-			
 			pc.start();
 			
 			String command = "";
@@ -95,8 +91,15 @@ public class PCComms extends Thread {
 				command = scanner.nextLine();
 				pc.sendCommand(command);
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+		}
 
 		
 		
+
+
+
 	}
 }
