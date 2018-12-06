@@ -44,14 +44,22 @@ public class PCComms extends Thread {
 	}
 	
 	public void handleCommands(String command){
-		if(command.contains("COLOR"))
+		if(command.contains("COLOR")){
 			System.out.println("C " + command);
+			return;
+		}
 		
-		if(command.contains("MOVESUCCESS"))
+		if(command.contains("MOVESUCCESS")){
 			System.out.println("M " + command);
+			return;
+		}
 		
-		if(command.contains("DIST"))
+		if(command.contains("DIST")){
 			System.out.println("F " + command);
+			return;
+		}
+		
+		System.out.println("UNKNOWN COMMAND: " + command);
 	}
 
 	@Override

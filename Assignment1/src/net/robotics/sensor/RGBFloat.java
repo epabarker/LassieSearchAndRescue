@@ -136,5 +136,15 @@ public class RGBFloat{
 	public void setB(float b) {
 		B = b;
 	}
+
+	public float[] distanceTo(RGBFloat color) {
+		float[] dist = new float[3];
+		
+		dist[0] = this.getR() - color.R;
+		dist[1] = this.getG() - color.G;
+		dist[2] = this.getB() - color.B;
+		
+		return dist;
+	}
 	
 }

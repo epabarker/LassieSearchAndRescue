@@ -13,11 +13,11 @@ import javax.swing.JWindow;
 
 import net.robotics.communication.Tile.TileType;
 
-public class PCCommunication extends JFrame {
+public class PCWindow extends JFrame {
 	
 	private static MapCanvas map;
 	
-	public PCCommunication(String name){
+	public PCWindow(String name){
 		super(name);
 		
 		setSize(300, 400);
@@ -64,7 +64,7 @@ public class PCCommunication extends JFrame {
 	}
 	
 	public static void main(String[] args){
-		new PCCommunication("Robotics Assignment 2");
+		new PCWindow("Robotics Assignment 2");
 		map.UpdateMap(new KnownMap(6,6, new Tile[]{
 				new Tile(1, 1, TileType.Hospital),
 				new Tile(1, 2, TileType.Victim),

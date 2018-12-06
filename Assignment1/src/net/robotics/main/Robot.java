@@ -25,8 +25,8 @@ import lejos.robotics.localization.OdometryPoseProvider;
 import lejos.robotics.navigation.MovePilot;
 import lejos.robotics.SampleProvider;
 import net.robotics.screen.LCDRenderer;
-import net.robotics.sensor.ColorSensorMonitor;
-import net.robotics.sensor.ColorSensorMonitor.ColorNames;
+import net.robotics.sensor.EuclideanColorSensorMonitor;
+import net.robotics.sensor.EuclideanColorSensorMonitor.ColorNames;
 import net.robotics.sensor.GyroMonitor;
 import net.robotics.sensor.InfraredSensorMonitor;
 import net.robotics.communication.RobotComms;
@@ -35,7 +35,7 @@ import net.robotics.communication.ServerSide;
 public class Robot {
 	public LCDRenderer screen;
 	
-	private ColorSensorMonitor leftColorSensor, rightColorSensor;
+	private EuclideanColorSensorMonitor leftColorSensor, rightColorSensor;
 	private GyroMonitor gyroMonitor;
 	private InfraredSensorMonitor irMonitor;
 	
@@ -70,15 +70,12 @@ public class Robot {
 				"Booting..."
 		}, 0, 60, GraphicsLCD.LEFT, Font.getDefaultFont());
 		
-		leftColorSensor = new ColorSensorMonitor(this, new EV3ColorSensor(myEV3.getPort("S1")), 16);
-		rightColorSensor = new ColorSensorMonitor(this, new EV3ColorSensor(myEV3.getPort("S4")), 16);
+		leftColorSensor = new EuclideanColorSensorMonitor(this, new EV3ColorSensor(myEV3.getPort("S1")));
+		rightColorSensor = new EuclideanColorSensorMonitor(this, new EV3ColorSensor(myEV3.getPort("S4")));
 		gyroMonitor = new GyroMonitor(this, new EV3GyroSensor(myEV3.getPort("S2")), 1);
 		irMonitor = new InfraredSensorMonitor(this, new EV3IRSensor(myEV3.getPort("S3")), Motor.C, 16);
 
-		leftColorSensor.configure(false); //Only need to configure once as it sets a static object
-		leftColorSensor.start();
-		
-		rightColorSensor.start();
+		leftColorSensor.configure(true); //Only need to configure once as it sets a static object
 		
 		irMonitor.start();
 		
@@ -105,10 +102,11 @@ public class Robot {
 		} catch (Exception e) {
         	screen.clearScreen();
         	screen.writeTo(new String[]{
-				e.getStackTrace()[0].toString(),
-				e.getStackTrace()[1].toString(),
-				e.getStackTrace()[2].toString(),
-				e.getStackTrace()[0].toString()
+    				e.getMessage(),
+				e.getStackTrace()[0].getMethodName() + ":" + e.getStackTrace()[0].getLineNumber(),
+				e.getStackTrace()[1].getMethodName() + ":" + e.getStackTrace()[1].getLineNumber(),
+				e.getStackTrace()[2].getMethodName() + ":" + e.getStackTrace()[2].getLineNumber(),
+				e.getStackTrace()[3].getMethodName() + ":" + e.getStackTrace()[3].getLineNumber(),
 			}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
 		}
 		
@@ -157,7 +155,7 @@ public class Robot {
 		pilot.setAngularAcceleration(30);
 		
 		boolean foundblack = false;
-		ColorSensorMonitor onBlack, other;
+		EuclideanColorSensorMonitor onBlack, other;
 		long timeSince = new Date().getTime();
 		
 		while(true){
@@ -167,12 +165,12 @@ public class Robot {
 				screen.writeTo(new String[]{
 						"L: " + leftColorSensor.getColor(),
 						"R: " + rightColorSensor.getColor(),
-						"LR: " + String.format("%.4f, %.4f", leftColorSensor.getRedColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHR()),
-						"LG: " + String.format("%.4f, %.4f", leftColorSensor.getGreenColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHG()),
-						"LB: " + String.format("%.4f, %.4f", leftColorSensor.getBlueColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHR()),
-						"RR: " + String.format("%.4f, %.4f", rightColorSensor.getRedColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLR()),
-						"RG: " + String.format("%.4f, %.4f", rightColorSensor.getGreenColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLG()),
-						"RB: " + String.format("%.4f, %.4f", rightColorSensor.getBlueColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLB()),
+						"LR: " + String.format("%.4f, %.4f", leftColorSensor.getRedColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHR()),
+						"LG: " + String.format("%.4f, %.4f", leftColorSensor.getGreenColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHG()),
+						"LB: " + String.format("%.4f, %.4f", leftColorSensor.getBlueColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHR()),
+						"RR: " + String.format("%.4f, %.4f", rightColorSensor.getRedColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLR()),
+						"RG: " + String.format("%.4f, %.4f", rightColorSensor.getGreenColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLG()),
+						"RB: " + String.format("%.4f, %.4f", rightColorSensor.getBlueColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLB()),
 				}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
 			}
 			
@@ -207,12 +205,12 @@ public class Robot {
 					screen.writeTo(new String[]{
 							"L: " + leftColorSensor.getColor(),
 							"R: " + rightColorSensor.getColor(),
-							"LR: " + String.format("%.4f, %.4f", leftColorSensor.getRedColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHR()),
-							"LG: " + String.format("%.4f, %.4f", leftColorSensor.getGreenColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHG()),
-							"LB: " + String.format("%.4f, %.4f", leftColorSensor.getBlueColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHR()),
-							"RR: " + String.format("%.4f, %.4f", rightColorSensor.getRedColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLR()),
-							"RG: " + String.format("%.4f, %.4f", rightColorSensor.getGreenColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLG()),
-							"RB: " + String.format("%.4f, %.4f", rightColorSensor.getBlueColor(), ColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLB()),
+							"LR: " + String.format("%.4f, %.4f", leftColorSensor.getRedColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHR()),
+							"LG: " + String.format("%.4f, %.4f", leftColorSensor.getGreenColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHG()),
+							"LB: " + String.format("%.4f, %.4f", leftColorSensor.getBlueColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHR()),
+							"RR: " + String.format("%.4f, %.4f", rightColorSensor.getRedColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLR()),
+							"RG: " + String.format("%.4f, %.4f", rightColorSensor.getGreenColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLG()),
+							"RB: " + String.format("%.4f, %.4f", rightColorSensor.getBlueColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLB()),
 							"Exited."
 					}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
 					
@@ -236,9 +234,9 @@ public class Robot {
 	//use IR sensor to get distance, get rotation amount
 	public float getDistanceOnHeading(int heading){
 		if(heading == 3)
-			irMonitor.rotate(-90);
-		if(heading == 1)
 			irMonitor.rotate(90);
+		if(heading == 1)
+			irMonitor.rotate(-90);
 		
 		irMonitor.clear();
 		try {
@@ -248,9 +246,9 @@ public class Robot {
 		}
 		
 		if(heading == 3)
-			irMonitor.rotate(90);
-		if(heading == 1)
 			irMonitor.rotate(-90);
+		if(heading == 1)
+			irMonitor.rotate(90);
 		
 		return irMonitor.getDistance();
 	}
@@ -301,8 +299,8 @@ public class Robot {
 		
 		ColorNames lcn, rcn;
 		do{
-			lcn = leftColorSensor.getCurrentColor();
-			rcn = rightColorSensor.getCurrentColor();
+			lcn = leftColorSensor.getColor();
+			rcn = rightColorSensor.getColor();
 			/*if(CHECK IR SENSOR){
 				pilot.travel(-4.0f);
 				return false;
@@ -320,8 +318,8 @@ public class Robot {
 	
 	//get Color underneath
 	public String getColor(){
-		ColorNames left = leftColorSensor.getCurrentColor();
-		ColorNames right = rightColorSensor.getCurrentColor();
+		ColorNames left = leftColorSensor.getColor();
+		ColorNames right = rightColorSensor.getColor();
 		return (left == ColorNames.UNKNOWN) ? right.toString() : left.toString();
 	}
 	
@@ -465,11 +463,11 @@ public class Robot {
 	}
 
 	
-	public ColorSensorMonitor getLeftColorSensor() {
+	public EuclideanColorSensorMonitor getLeftColorSensor() {
 		return leftColorSensor;
 	}
 	
-	public ColorSensorMonitor getRightColorSensor() {
+	public EuclideanColorSensorMonitor getRightColorSensor() {
 		return rightColorSensor;
 	}
 	

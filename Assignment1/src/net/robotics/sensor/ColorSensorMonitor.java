@@ -7,20 +7,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Queue;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
-
 import lejos.hardware.Button;
-import lejos.hardware.ev3.LocalEV3;
-import lejos.hardware.lcd.Font;
 import lejos.hardware.lcd.GraphicsLCD;
 import lejos.hardware.sensor.EV3ColorSensor;
 import net.robotics.main.Robot;
-import net.robotics.screen.LCDRenderer;
 
+@Deprecated
 public class ColorSensorMonitor extends Thread{
 
 	private static HashMap<ColorNames, RGBFloat> ColorKeys = new HashMap<>();
@@ -52,10 +46,10 @@ public class ColorSensorMonitor extends Thread{
 
 	private static final float[][] ColorRanges = {
 			//{0.15f},
-			{0.005f, 0.005f, 0.01f}, //BLUE Colors
-			{0.005f, 0.005f, 0.01f}, //BLUE Colors
-			{0.005f, 0.005f, 0.01f}, //BLUE Colors
-			{0.005f, 0.005f, 0.01f}, //BLUE Colors
+			{0.05f, 0.05f, 0.1f}, //BLUE Colors
+			{0.05f, 0.05f, 0.1f}, //BLUE Colors
+			{0.05f, 0.05f, 0.1f}, //BLUE Colors
+			{0.06f, 0.1f, 0.1f}, //BLUE Colors
 			{0.2f},
 			{0.2f}
 			//{0.05f, 0.05f, 0.1f},
