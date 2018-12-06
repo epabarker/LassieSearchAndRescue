@@ -238,11 +238,10 @@ public class ParamedicEnv extends Environment {
         
        // this is a test method that goes through the 5 scenarios of scanning colors of 5 possible victim locations and adding a percept of what it percieves
        void perceiveColor() {	   
-    	  
     	   //to add test if statements with each loction of victims and returning a string of said color
-    	   Location l1= new Location(1,3);
-    	   Location l2= new Location(4,3);
-    	   Location l3= new Location(0,2);
+    	   Location l1= new Location(2,3);
+    	   Location l2= new Location(4,5);
+    	   Location l3= new Location(5,1);
     	   
     	   Literal col;
     	   int rx = model.getAgPos(0).x;

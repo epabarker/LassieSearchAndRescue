@@ -20,8 +20,9 @@ import net.robotics.console.TextAreaOutputStream;
 
 public class PCWindow extends JFrame {
 	
-	private static MapCanvas map;
-	
+	private MapCanvas map;
+	private RobotInfoPane robotInfoPanel;
+
 	public PCWindow(String name){
 		super(name);
 		
@@ -45,9 +46,9 @@ public class PCWindow extends JFrame {
 		button.setPreferredSize(new Dimension(300, 500));
 		pane.add(button, BorderLayout.PAGE_START);
 		
-		RobotInfoPane robotInfo = new RobotInfoPane();
-		robotInfo.setPreferredSize(new Dimension(300, 100));
-		pane.add(robotInfo, BorderLayout.CENTER);
+		robotInfoPanel = new RobotInfoPane();
+		robotInfoPanel.setPreferredSize(new Dimension(300, 100));
+		pane.add(robotInfoPanel, BorderLayout.CENTER);
 		
 		pane = new JPanel(new BorderLayout());
 		add(pane, BorderLayout.CENTER);
@@ -67,26 +68,30 @@ public class PCWindow extends JFrame {
 
 		//Make the center component big, since that's the
 		//typical usage of BorderLayout.
-		map = new MapCanvas();
+		map = new MapCanvas(new KnownMap(6,6));
 		map.setPreferredSize(new Dimension(600, 600));
 		pane.add(map, BorderLayout.CENTER);
 		
 		pack();
 		setVisible(true);
-		
-		
+	}
+	
+	public MapCanvas getMap() {
+		return map;
 	}
 	
 	public static void main(String[] args){
-		new PCWindow("Robotics Assignment 2");
-		map.UpdateMap(new KnownMap(6,6, new Tile[]{
-				new Tile(1, 1, TileType.Hospital),
-				new Tile(1, 2, TileType.Victim),
-				new Tile(2, 2),
-		}));
+		PCWindow win = new PCWindow("Robotics Assignment 2");
+		win.getMap().updateMap(TileType.OBSTACLE, 2, 2);
+		win.getMap().updateMap(TileType.Hospital, 1, 1);
+		win.getMap().updateMap(TileType.Victim, 1, 2);
 		
 		System.out.println("TEST");
 		
 		//map.UpdateMap(new KnownMap(6,6));
+	}
+
+	public RobotInfoPane getRobotInfoPanel() {
+		return robotInfoPanel;
 	}
 }

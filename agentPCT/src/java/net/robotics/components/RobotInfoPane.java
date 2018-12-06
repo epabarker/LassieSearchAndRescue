@@ -17,9 +17,13 @@ public class RobotInfoPane extends JPanel implements ActionListener {
     private static final String ADDRESS = "192.168.70.64";
     
     private PCComms pcComms;
+    
+    private RobotInfo robotInfo;
 	
 	public RobotInfoPane(){
 		super();
+		
+		setRobotInfo(new RobotInfo());
 		
 		ipAddress = new JTextField(ADDRESS); 
 		confirmButton = new JButton("Connect");
@@ -51,4 +55,43 @@ public class RobotInfoPane extends JPanel implements ActionListener {
 			pcComms.sendCommand("MOVE 0");
 		}
 	}
+	
+	public RobotInfo getRobotInfo() {
+		return robotInfo;
+	}
+
+	private void setRobotInfo(RobotInfo robotInfo) {
+		this.robotInfo = robotInfo;
+	}
+
+	public class RobotInfo {
+		private int x, y;
+		
+		public RobotInfo(){
+			this.setPos(x, y);
+		}
+		
+		public void setPos(int x, int y){
+			this.setX(x);
+			this.setY(y);
+		}
+
+		public int getX() {
+			return x;
+		}
+
+		public void setX(int x) {
+			this.x = x;
+		}
+
+		public int getY() {
+			return y;
+		}
+
+		public void setY(int y) {
+			this.y = y;
+		}
+	}
 }
+
+

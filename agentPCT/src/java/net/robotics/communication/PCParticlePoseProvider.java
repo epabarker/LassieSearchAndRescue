@@ -30,7 +30,7 @@ public class PCParticlePoseProvider {
 		ArrayList<Particle> toRemove = new ArrayList<Particle>();
 		for (int i = 0; i < tSet.getParticleSet().size(); i++) {	
 			Particle currParticle = tSet.getParticle(i);
-			if (!map.isPointIn(currParticle.getX(), currParticle.getY()) || !map.notObstacle(currParticle.getX(), currParticle.getY())) {
+			if (!map.isPointIn(currParticle.getX(), currParticle.getY()) || map.isObstacle(currParticle.getX(), currParticle.getY())) {
 				toRemove.add(currParticle);
 			}	
 		}
@@ -89,7 +89,7 @@ public class PCParticlePoseProvider {
 			currParticle.setY(currParticle.getY() + poseChange[1]);
 			currParticle.setHeading(addHeadings(currParticle.getHeading(), poseChange[2]));
 			
-			if (!map.isPointIn(currParticle.getX(), currParticle.getY()) || !map.notObstacle(currParticle.getX(), currParticle.getY())) {
+			if (!map.isPointIn(currParticle.getX(), currParticle.getY()) || map.isObstacle(currParticle.getX(), currParticle.getY())) {
 				toRemove.add(currParticle);
 			}
 		}
@@ -211,7 +211,7 @@ public class PCParticlePoseProvider {
 			nY = y;
 		}
 		if (nX >= 0 && nX < xCells && nY >=0 && nY < yCells) {
-			if (map.getTile(nX, nY).getOccupiedBelief() == 1.0) {
+			if (map.isObstacle(nX, nY)) {
 				return true;
 			} else {
 				return false;

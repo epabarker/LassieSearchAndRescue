@@ -91,7 +91,7 @@ public class AStarSearch {
 					
 					Node neighbor = new Node(arena.getTile(nX, nY));
 					
-					if(arena.notObstacle(nX, nY))
+					if(!arena.isObstacle(nX, nY))
 						continue;
 					
 					neighbor.parent = next;

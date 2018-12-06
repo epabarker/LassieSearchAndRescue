@@ -53,7 +53,7 @@ public class KnownMap {
 			int x = oc[i][0];
 			int y = oc[i][1];
 			if(isPointIn(x, y)){
-				tiles[x][y].knownObstacle();
+				tiles[x][y].setType(TileType.OBSTACLE);;
 			}
 		}
 	}
@@ -82,11 +82,11 @@ public class KnownMap {
 		}
 	}
 
-	public boolean notObstacle(int x, int y) {
-		if (getTile(x,y).getOccupiedBelief() == 1.0) {
-			return false;
-		} else {
+	public boolean isObstacle(int x, int y) {
+		if (getTile(x,y).getType() == TileType.OBSTACLE) {
 			return true;
+		} else {
+			return false;
 		}
 	}
 }
