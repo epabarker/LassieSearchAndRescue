@@ -113,11 +113,11 @@ location(r,1,2)[source(percept)].
     <- 	.send(D, tell, requestVictimStatus(X,Y,C));
     	.wait(2000).
 @search
-+!search : not allCriticalRescued
++!search : not foundAllVictims
     <-  nextVictim;
     	.wait(2000);
         !search.
-+!search : not rescuedAllVictims
++!search : allCriticalRescued & not rescuedAllVictims
     <-  nextToBeRescued;
     	.wait(2000);
     	!search.
@@ -127,10 +127,12 @@ location(r,1,2)[source(percept)].
 @checkColour
 +!checkColour(X,Y) : colour(X,Y,burgandy)
     <-  .print("Colour recognised as victim");
+    	+foundV(X,Y);
     	!requestVictimStatus(doctor,X,Y,burgandy);
         !intention(X,Y).
 +!checkColour(X,Y) : colour(X,Y,cyan)
     <-  .print("Colour recognised as victim");
+    	+foundV(X,Y);
     	!requestVictimStatus(doctor,X,Y,cyan);
         !intention(X,Y).
 +!checkColour(X,Y) : not (colour(X,Y,burgandy) | colour(X,Y,cyan))
