@@ -123,7 +123,11 @@ public class ParamedicEnv extends Environment {
             	int x = loc1.x;
             	int y = loc1.y;
             	moveTo(x,y);
-            	logger.info("executing: "+action+", but not implemented!");
+            	logger.info("executing: "+action+", going to victim!");
+            } else if (action.getFunctor().equals("removeToBeRescued")) {
+            	// I'm not sure if we should have the method to perceive colour situated OUTSIDE of the updatePercepts method.
+            	toRescue.remove(0);
+            	logger.info("executing: "+action+", removing toberescued");
             }
             /*
             else if (action.getFunctor().equals("nextVictim")) {
@@ -160,7 +164,7 @@ public class ParamedicEnv extends Environment {
     
    // needs to be configurred for the paramedic agent
     void updatePercepts() {
-      clearPercepts();
+    	clearPercepts();
 
         Location paramedic = model.getAgPos(0);
         Literal pos1 = Literal.parseLiteral("location(r," + paramedic.x + "," + paramedic.y + ")");
@@ -201,11 +205,6 @@ public class ParamedicEnv extends Environment {
     
     // ======================================================================
     class RobotBayModel extends GridWorldModel {
-    	
-    	// Aslam, I think this is only relevant to the garbage robots from the example. 
-    	 public static final int MErr = 2; // max error in taking victim
-         int nerr; // number of tries of take victim
-         boolean victimTaken = false; // whether agent has picked the victim
 
         private RobotBayModel() {
             super(GSize, GSize, 1);	
@@ -241,28 +240,25 @@ public class ParamedicEnv extends Environment {
        void perceiveColor() {	   
     	  
     	   //to add test if statements with each loction of victims and returning a string of said color
-    	   Location l1= new Location(2,3);
-    	   Location l2= new Location(4,5);
-    	   Location l3= new Location(5,1);
+    	   Location l1= new Location(1,3);
+    	   Location l2= new Location(4,3);
+    	   Location l3= new Location(0,2);
     	   
     	   Literal col;
     	   int rx = model.getAgPos(0).x;
     	   int ry = model.getAgPos(0).y;
     	   
     	   if (rx == l1.x && ry == l1.y) {
-    		   col = Literal.parseLiteral("colour("+2+","+3+",burgandy)");
+    		   col = Literal.parseLiteral("colour("+rx+","+ry+",burgandy)");
     		   addPercept(col);
     	   } else if (rx == l2.x && ry == l2.y) {
-    		   col = Literal.parseLiteral("colour("+4+","+5+",cyan)");
+    		   col = Literal.parseLiteral("colour("+rx+","+ry+",cyan)");
     		   addPercept(col);
     	   } else if (rx == l3.x && ry == l3.y) {
-    		   col = Literal.parseLiteral("colour("+5+","+1+",cyan)");
+    		   col = Literal.parseLiteral("colour("+rx+","+ry+",cyan)");
     		   addPercept(col);
     	   } else {
-    		   Location loc1 = model.getAgPos(0);
-    		   int x = loc1.x;
-    		   int y = loc1.y;
-    		   col = Literal.parseLiteral("colour("+x+","+y+",white)");
+    		   col = Literal.parseLiteral("colour("+rx+","+ry+",white)");
     		   addPercept(col);
     	   }
 
