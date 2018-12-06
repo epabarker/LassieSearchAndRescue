@@ -24,7 +24,7 @@ location(r,1,2)[source(percept)].
 // Plan Library
 // ========================================================================
    
-
+@plays
 +plays(initiator,In)
    :  .my_name(Me)
    <- .send(In,tell,introduction(participant,Me)).
@@ -63,44 +63,52 @@ location(r,1,2)[source(percept)].
     
 +toBeRescued(X,Y): plays(initiator,D)
 	<- .print("Need to come back to",X,",",Y); addToBeRescued(X,Y).  
-    
+   
+@alr
 +location(r,X,Y)[source(percept)]: plays(initiator,D)
 	<- .print("Robot is at ",X,", ",Y); addRobot(X,Y).
-    
+
+@alv  
 +location(victim,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Victim could be at ",X,", ",Y); addVictim(X,Y).
     
+@rlv
 -location(victim,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Victim could be at ",X,", ",Y); removeVictim(X,Y).
 
+@alo
 +location(obstacle,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Obstacle is at ",X,", ",Y); addObstacle(X,Y).
-    
+
+@alh
 +location(hospital,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Hospital is at ",X,", ",Y); addHospital(X,Y).
-    
+
+@ac   
 +critical(X,Y) : true
     <-  .print("The victim at ", X, ",", Y, " is critical").
-
+    
+@anc
 +~critical(X,Y): true
     <-  .print("The victim at ", X, ",", Y, " is not critical").
 
-+colour(X,Y,C): true
-    <- !requestVictimStatus(doctor,X,Y,C).
+//+colour(X,Y,C): true
+//    <- !requestVictimStatus(doctor,X,Y,C).
 
+@r
 +location(r,X,Y) : location(victim,X,Y)
     <-  perceiveColour;															// TO SERVER
         !checkColour(X,Y).
         
       
-
+@getScenario
 +!getScenario(D) <- .send(D,askAll,location(_,_,_)).
 
-
+@requestVictimStatus
 +!requestVictimStatus(D,X,Y,C)
     <- .wait(2000);
      	.send(D, tell, requestVictimStatus(X,Y,C)).
-
+@search
 +!search : not allCriticalRescued
     <-  nextVictim;
         !search.
@@ -110,6 +118,7 @@ location(r,1,2)[source(percept)].
 +!search : rescuedAllVictims
 	<- 	goHome.                                                                 // TO SERVER
 
+@checkColour
 +!checkColour(X,Y) : colour(X,Y,burgandy) | colour(X,Y,cyan)
     <-  !requestVictimStatus(D,X,Y,C);
         !intention(X,Y).
@@ -117,6 +126,7 @@ location(r,1,2)[source(percept)].
     <-  -location(victim,X,Y).
 
 // If the victim is critical:
+@intention
 +!intention(X,Y) : critical(X,Y)
     <-  !rescue(X,Y).       // Go to hospital.                                      
     
@@ -124,13 +134,23 @@ location(r,1,2)[source(percept)].
 +!intention(X,Y) : ~critical(X,Y) & not allCriticalRescued
     <-  +toBeRescued(X,Y);
     	-location(victim,X,Y);
-    	nextVictim.      // Go to the next victim.                               // TO SERVER
+    	nextVictim.      // Go to the next victim.                              // TO SERVER
     
 // If the victim is non-critical, and all victims have been rescued:
 +!intention(X,Y) : ~critical(X,Y) & allCriticalRescued
-    <-  !rescue(X,Y).       // Go to hospital.                                   // TO SERVER
-        
-
+    <-  !rescue(X,Y).       // Go to hospital.                                  // TO SERVER
+       
+@rescue 
++!rescue(X,Y) : critical(X,Y) 
+    <-  ?criticalCount(C);
+    	NewCount = C - 1;
+    	+criticalCount(NewCount);
+    	-criticalCount(C);
+    	takeVictim;                                                             // TO SERVER
+        -location(victim,X,Y);                                                     
+        goHospital;                                                            	// TO SERVER
+        dropVictim;                                                            	// TO SERVER
+        +rescued(X,Y).      // Add to the count of rescued victims.
 +!rescue(X,Y) : true 
     <-  takeVictim;                                                              // TO SERVER
         -location(victim,X,Y);                                                     

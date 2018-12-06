@@ -59,6 +59,7 @@ public class ParamedicEnv extends Environment {
                 int x = (int)((NumberTerm)action.getTerm(0)).solve();
                 int y = (int)((NumberTerm)action.getTerm(1)).solve();
                 model.removeVictim(x,y);
+                victims.remove(0);
                 logger.info("removing victim at: "+x+","+y);
             } else if (action.getFunctor().equals("addToBeRescued")) {
                 int x = (int)((NumberTerm)action.getTerm(0)).solve();
@@ -80,16 +81,17 @@ public class ParamedicEnv extends Environment {
             } else if (action.getFunctor().equals("addRobot")) {
                 int x = (int)((NumberTerm)action.getTerm(0)).solve();
                 int y = (int)((NumberTerm)action.getTerm(1)).solve();
+                model.setAgPos(0, x, y);
                 model.addRobot(x,y);
                 logger.info("adding robot at: "+x+","+y);
             } else if (action.getFunctor().equals("goHome")) {
             	// Move robot to hospital square, and run "stop" code. Signify that you have finished.
-            	model.moveTo(0,0);
+            	moveTo(0,0);
             	logger.info("executing: "+action+", but not implemented!");
             	
             } else if (action.getFunctor().equals("goHospital")) {
                 // Move robot to hospital square
-            	model.moveTo(0,0);
+            	moveTo(0,0);
             	logger.info("executing: "+action+", but not implemented!");
             	
             } else if (action.getFunctor().equals("takeVictim")) {
@@ -102,8 +104,8 @@ public class ParamedicEnv extends Environment {
             	Location loc1 = victims.get(0);
             	int x = loc1.x;
             	int y = loc1.y;
-            	model.moveTo(x,y);
-            	logger.info("executing: "+action+", but not implemented!");
+            	moveTo(x,y);
+            	logger.info("executing: "+action+", going to next victim!");
             	
             } else if (action.getFunctor().equals("dropVictim")) {
             	// Unassign victim location from robot location
@@ -113,14 +115,14 @@ public class ParamedicEnv extends Environment {
             	
             } else if (action.getFunctor().equals("perceiveColour")) {
             	// I'm not sure if we should have the method to perceive colour situated OUTSIDE of the updatePercepts method. 
-            	updatePercepts();
+            	model.perceiveColor();
             	logger.info("executing: "+action+", but not implemented!");
             } else if (action.getFunctor().equals("nextToBeRescued")) {
             	// I'm not sure if we should have the method to perceive colour situated OUTSIDE of the updatePercepts method.
             	Location loc1 = toRescue.get(0);
             	int x = loc1.x;
             	int y = loc1.y;
-            	model.moveTo(x,y);
+            	moveTo(x,y);
             	logger.info("executing: "+action+", but not implemented!");
             }
             /*
@@ -167,6 +169,20 @@ public class ParamedicEnv extends Environment {
         // addPercept(colour)
         addPercept(pos1);       
     }
+    
+    void moveTo(int x, int y) {
+    	Location rLoc = model.getAgPos(0);
+    	int rx = rLoc.x;
+    	int ry = rLoc.y;
+    	model.removeRobot(rx, ry);
+    	model.setAgPos(0,x,y);
+    	updatePercepts();
+    	//if (currentRobotLocation.x < x) {currentRobotLocation.x = x;}
+    	//else if (currentRobotLocation.x > x){currentRobotLocation.x--;}
+    	//If (currentRobotLocation.y < y) {currentRobotLocation.y++;}
+    	//else (currentRobotLocation.y > y){currentRobotLocation.y--;}
+    }
+    
 
     /** Called before the end of MAS execution */
     @Override
@@ -189,7 +205,6 @@ public class ParamedicEnv extends Environment {
         
         void addToBeRescued(int x, int y) {
 			// TODO Auto-generated method stub
-			
 		}
 
 		void addVictim(int x, int y) {
@@ -207,14 +222,10 @@ public class ParamedicEnv extends Environment {
         void addRobot(int x, int y) {
             add(ROBOT, x, y);
         }
-        void moveTo(int x, int y) {
-        	model.setAgPos(0,x,y);
-        	updatePercepts();
-        	//if (currentRobotLocation.x < x) {currentRobotLocation.x = x;}
-        	//else if (currentRobotLocation.x > x){currentRobotLocation.x--;}
-        	//If (currentRobotLocation.y < y) {currentRobotLocation.y++;}
-        	//else (currentRobotLocation.y > y){currentRobotLocation.y--;}
+        void removeRobot(int x, int y) {
+            remove(ROBOT, x, y);
         }
+        
         
         void takeVictim() {
         	Location rob = model.getAgPos(0);
@@ -246,19 +257,19 @@ public class ParamedicEnv extends Environment {
     	   Location l2= new Location(4,5);
     	   Location l3= new Location(5,1);
     	   
-    	   if (getAgPos(0) == l1) {
-    		   addPercept(Literal.parseLiteral("colour("+2+","+3+",burgandy)" )) ;
-    		   
-    	   } else if (getAgPos(0) == l2) {
-    		   addPercept(Literal.parseLiteral("colour("+4+","+5+",burgandy)"));
-    	   } else if (getAgPos(0) == l3) {
-    		   addPercept(Literal.parseLiteral("colour("+5+","+1+",burgandy)"));
-    	   } else {return ;}
+    	   Literal col;
     	   
-    	   
-    		   
-    		   
-    	 
+    	   if (model.getAgPos(0) == l1) {
+    		   col = Literal.parseLiteral("colour("+2+","+3+",burgandy)");
+    		   addPercept(col);
+    	   } else if (model.getAgPos(0) == l2) {
+    		   col = Literal.parseLiteral("colour("+4+","+5+",burgandy)");
+    		   addPercept(col);
+    	   } else if (model.getAgPos(0) == l3) {
+    		   col = Literal.parseLiteral("colour("+5+","+1+",burgandy)");
+    		   addPercept(col);
+    	   } 	   
+
        }
         
         
