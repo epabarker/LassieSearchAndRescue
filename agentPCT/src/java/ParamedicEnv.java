@@ -87,36 +87,36 @@ public class ParamedicEnv extends Environment {
             } else if (action.getFunctor().equals("goHome")) {
             	// Move robot to hospital square, and run "stop" code. Signify that you have finished.
             	moveTo(0,0);
-            	logger.info("executing: "+action+", but not implemented!");
+            	logger.info("executing: "+action+", going home (hospital)");
             	
             } else if (action.getFunctor().equals("goHospital")) {
                 // Move robot to hospital square
             	moveTo(0,0);
-            	logger.info("executing: "+action+", but not implemented!");
+            	logger.info("executing: "+action+", going to hospital");
             	
             } else if (action.getFunctor().equals("takeVictim")) {
             	// Assign victim location to robot location
             	// Display colour signifying that a victim is being carried
-            	logger.info("executing: "+action+", but not implemented!");
-            	model.takeVictim();
+            	logger.info("executing: "+action+", picking up victim");
+            	takeVictim();
             	
             } else if (action.getFunctor().equals("nextVictim")) {
             	Location loc1 = victims.get(0);
             	int x = loc1.x;
             	int y = loc1.y;
             	moveTo(x,y);
-            	logger.info("executing: "+action+", going to next victim!");
+            	logger.info("executing: "+action+", going to next victim!(changed)");
             	
             } else if (action.getFunctor().equals("dropVictim")) {
             	// Unassign victim location from robot location
             	// Display colour signifying that a victim is no longer being carried
-            	logger.info("executing: "+action+", but not implemented!");
-            	model.dropVictim();
+            	logger.info("executing: "+action+", dropping victim at hospital");
+            	dropVictim();
             	
             } else if (action.getFunctor().equals("perceiveColour")) {
             	// I'm not sure if we should have the method to perceive colour situated OUTSIDE of the updatePercepts method. 
-            	model.perceiveColor();
-            	logger.info("executing: "+action+", but not implemented!");
+            	updatePercepts();
+            	logger.info("executing: "+action+", perceiving colour!");
             } else if (action.getFunctor().equals("nextToBeRescued")) {
             	// I'm not sure if we should have the method to perceive colour situated OUTSIDE of the updatePercepts method.
             	Location loc1 = toRescue.get(0);
@@ -167,6 +167,7 @@ public class ParamedicEnv extends Environment {
         // String colourSensed = NEED TO ADD COLOUR SENSED HERE. But only actually sense a new colour when the method for sensing is called. 
         // Literal colour = Literal.parseLiteral("colour(" + paramedic.x + "," + paramedic.y + "," + colourSensed + ")");
         // addPercept(colour)
+        model.perceiveColor();
         addPercept(pos1);       
     }
     
@@ -181,6 +182,14 @@ public class ParamedicEnv extends Environment {
     	//else if (currentRobotLocation.x > x){currentRobotLocation.x--;}
     	//If (currentRobotLocation.y < y) {currentRobotLocation.y++;}
     	//else (currentRobotLocation.y > y){currentRobotLocation.y--;}
+    }
+    
+   void takeVictim() {
+    	// Switch light on to say we are carrying victim
+    }
+    
+   void dropVictim() {
+    	// Switch light off to say we are not carrying a victim
     }
     
 
@@ -227,48 +236,35 @@ public class ParamedicEnv extends Environment {
         }
         
         
-        void takeVictim() {
-        	Location rob = model.getAgPos(0);
-        	if (model.hasObject(VICTIM, rob)) {
-        		 if (random.nextBoolean() || nerr == MErr) {
-                     remove(VICTIM, rob);
-                     nerr = 0;
-                     victimTaken = true;
-                 } else {
-                     nerr++;
-                 }
-        	}
-        }
         
-       void dropVictim() {
-        	 if (victimTaken) {
-                 victimTaken = false;
-                 add(VICTIM, getAgPos(0));
-                 if (model.hasObject(VICTIM, getAgPos(0))) {
-                     remove(VICTIM, getAgPos(0));
-                 }
-             }
-        }
        // this is a test method that goes through the 5 scenarios of scanning colors of 5 possible victim locations and adding a percept of what it percieves
        void perceiveColor() {	   
     	  
-    	   //to add test if statements with each loaction of victims and returning a string of said color
+    	   //to add test if statements with each loction of victims and returning a string of said color
     	   Location l1= new Location(2,3);
     	   Location l2= new Location(4,5);
     	   Location l3= new Location(5,1);
     	   
     	   Literal col;
+    	   int rx = model.getAgPos(0).x;
+    	   int ry = model.getAgPos(0).y;
     	   
-    	   if (model.getAgPos(0) == l1) {
+    	   if (rx == l1.x && ry == l1.y) {
     		   col = Literal.parseLiteral("colour("+2+","+3+",burgandy)");
     		   addPercept(col);
-    	   } else if (model.getAgPos(0) == l2) {
-    		   col = Literal.parseLiteral("colour("+4+","+5+",burgandy)");
+    	   } else if (rx == l2.x && ry == l2.y) {
+    		   col = Literal.parseLiteral("colour("+4+","+5+",cyan)");
     		   addPercept(col);
-    	   } else if (model.getAgPos(0) == l3) {
-    		   col = Literal.parseLiteral("colour("+5+","+1+",burgandy)");
+    	   } else if (rx == l3.x && ry == l3.y) {
+    		   col = Literal.parseLiteral("colour("+5+","+1+",cyan)");
     		   addPercept(col);
-    	   } 	   
+    	   } else {
+    		   Location loc1 = model.getAgPos(0);
+    		   int x = loc1.x;
+    		   int y = loc1.y;
+    		   col = Literal.parseLiteral("colour("+x+","+y+",white)");
+    		   addPercept(col);
+    	   }
 
        }
         
