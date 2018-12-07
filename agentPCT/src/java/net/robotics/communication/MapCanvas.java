@@ -18,16 +18,28 @@ public class MapCanvas extends JPanel {
 	private final String name = "FENTON!";
 	private KnownMap map;
 	//private Map loadedMap;
+	
+	private int x, y;
 
 
-	public MapCanvas() {
-
+	public MapCanvas(KnownMap map) {
+		this.map = map;
 		//this.setPreferredSize(new Dimension(600,600));
 	}
-
-	public void UpdateMap(KnownMap map){
-		this.map = map;
+	
+	public void updateRobotPosition(int x, int y){
+		this.x = x;
+		this.y = y;
 		paintComponent(this.getGraphics());
+	}
+	
+	public void updateMap(TileType object, int x, int y){
+		map.getTile(x, y).setType(object);
+		paintComponent(this.getGraphics());
+	}
+	
+	public KnownMap getMap(){
+		return map;
 	}
 
 	private void drawMap(Graphics2D g){
@@ -37,14 +49,14 @@ public class MapCanvas extends JPanel {
 		float xSize = this.getWidth()/map.getWidth();
 		float ySize = this.getHeight()/map.getHeight();
 		
-		int strokeSize = (int) (xSize * 0.1);
+		int strokeSize = (int) (xSize * 0.01);
 
 		int gap = strokeSize / 2;
 		
 		xSize -= gap;
 		ySize -= gap;
 		
-		System.out.println(xSize + "/" + ySize );
+		//System.out.println(xSize + "/" + ySize );
 		
 		for (int x = 0; x < map.getWidth(); x++) {
 			for (int y = 0; y < map.getHeight(); y++) {
@@ -54,28 +66,30 @@ public class MapCanvas extends JPanel {
 				int posX = x * ((int)xSize + gap*2);
 				int posY = y * ((int)ySize + gap*2);
 
-
-				System.out.println(x + "/" + y + "/"+t.getType());
+				//System.out.println(x + "/" + y + "/"+t.getType());
 				
-				if(map.notObstacle(x, y)){
-					
-					if(t.getType() == TileType.Hospital){
-						g.setColor(Color.CYAN);
-						g.fillRect(posX - gap, posY - gap, (int)xSize + 2*gap, (int)ySize + 2*gap);
-					} else if(t.getType() == TileType.Victim){
-						g.setColor(new Color(255, 137, 86));
-						g.fillRect(posX - gap, posY - gap, (int)xSize + 2*gap, (int)ySize + 2*gap);
-					} else {
-						g.drawRect(posX, posY, (int)xSize, (int)ySize);
-					}
-				} else {
+				if(t.getType() == TileType.Hospital){
+					g.setColor(Color.CYAN);
+					g.fillRect(posX - gap, posY - gap, (int)xSize + 2*gap, (int)ySize + 2*gap);
+				} else if(t.getType() == TileType.Victim){
+					g.setColor(new Color(255, 137, 86));
+					g.fillRect(posX - gap, posY - gap, (int)xSize + 2*gap, (int)ySize + 2*gap);
+				} else if(t.getType() == TileType.OBSTACLE){
 					g.setColor(Color.BLACK);
 					g.fillRect(posX - gap, posY - gap, (int)xSize + 2*gap, (int)ySize + 2*gap);
+				} else if(t.getType() == TileType.NONCRITICAL){
+					g.setColor(Color.PINK);
+					g.fillRect(posX - gap, posY - gap, (int)xSize + 2*gap, (int)ySize + 2*gap);
+				} else {
+					g.drawRect(posX, posY, (int)xSize, (int)ySize);
 				}
 				
 				g.setColor(Color.BLACK);
 			}
 		}
+		
+		g.setColor(Color.DARK_GRAY);
+		g.fillRect(x * ((int)xSize), y  * ((int)ySize), 50, 50);
 	}
 
 
