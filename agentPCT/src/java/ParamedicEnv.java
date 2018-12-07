@@ -181,6 +181,7 @@ public class ParamedicEnv extends Environment {
     	int ry = rLoc.y;
     	model.removeRobot(rx, ry);
     	model.setAgPos(0,x,y);
+    	
     	updatePercepts();
     	//if (currentRobotLocation.x < x) {currentRobotLocation.x = x;}
     	//else if (currentRobotLocation.x > x){currentRobotLocation.x--;}
@@ -239,7 +240,7 @@ public class ParamedicEnv extends Environment {
        // this is a test method that goes through the 5 scenarios of scanning colors of 5 possible victim locations and adding a percept of what it percieves
        void perceiveColor() {	   
     	   //to add test if statements with each loction of victims and returning a string of said color
-    	   Location l1= new Location(2,3);
+    	   Location l1= new Location(2,2);
     	   Location l2= new Location(4,5);
     	   Location l3= new Location(5,1);
     	   

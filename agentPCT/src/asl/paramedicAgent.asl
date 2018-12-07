@@ -14,7 +14,7 @@ foundAllVictims :- .count(foundV(_,_), 3).
 //If all victims have been rescued, this will evaluate as true. 
 rescuedAllVictims :- .count(rescued(_,_), 3).
 
-plays(initiator,doctor).
+plays(initiator,doctor1).
 
 location(r,1,2)[source(percept)].
 
@@ -68,7 +68,7 @@ environment(free).
     	perceiveColour;															// TO SERVER
         !checkColour(X,Y).
 
-+location(r,X,Y) : plays(initiator,D) & toBeRescued(X,Y) & not carrying(victim)
++location(r,X,Y) : plays(initiator,D) & toBeRescued(X,Y) & not carrying(victim) & notAllCriticalRescued
     <-  addRobot(X,Y);
     	!rescue(X,Y).
     	
@@ -97,7 +97,7 @@ environment(free).
     <-  .print("The victim at ", X, ",", Y, " is not critical").
 
 //+colour(X,Y,C): true
-//    <- !requestVictimStatus(doctor,X,Y,C).
+//    <- !requestVictimStatus(doctor1,X,Y,C).
 
 +carrying(victim): true
 	<-	takeVictim.
@@ -114,7 +114,9 @@ environment(free).
     	.wait(2000).
 
 +!search : not foundAllVictims & environment(free)
-    <-  nextVictim;
+    <-  .print("Calling");
+    	nextVictim;
+    	.print("Called");
     	-environment(free);
         !search.
 +!search : allCriticalRescued & not rescuedAllVictims & environment(free)
@@ -130,16 +132,16 @@ environment(free).
 +!checkColour(X,Y) : colour(X,Y,burgandy)
     <-  .print("Colour recognised as victim");
     	+foundV(X,Y);
-    	!requestVictimStatus(doctor,X,Y,burgandy);
+    	!requestVictimStatus(doctor1,X,Y,burgandy);
         !intention(X,Y).
 +!checkColour(X,Y) : colour(X,Y,cyan)
     <-  .print("Colour recognised as victim");
     	+foundV(X,Y);
-    	!requestVictimStatus(doctor,X,Y,cyan);
+    	!requestVictimStatus(doctor1,X,Y,cyan);
         !intention(X,Y).
 +!checkColour(X,Y) : not (colour(X,Y,burgandy) | colour(X,Y,cyan))
     <-  .print("Colour not recognised as victim");
-    	-location(victim,X,Y)[source(doctor)];
+    	-location(victim,X,Y)[source(doctor1)];
     	+environment(free).
 
 // If the victim is critical:
@@ -149,7 +151,7 @@ environment(free).
 // If the victim is non-critical, and not all critical victims have been rescued:
 +!intention(X,Y) : ~critical(X,Y) & not allCriticalRescued
     <-  +toBeRescued(X,Y);
-    	-location(victim,X,Y)[source(doctor)];
+    	-location(victim,X,Y)[source(doctor1)];
     	+environment(free).                      // TO SERVER
     
 // If the victim is non-critical, and all victims have been rescued:
@@ -163,14 +165,14 @@ environment(free).
     	+criticalCount(NewCount);
     	-criticalCount(C);
     	+carrying(victim);                                                              // TO SERVER
-        -location(victim,X,Y)[source(doctor)];                                                     
+        -location(victim,X,Y)[source(doctor1)];                                                     
         goHospital;                                                            	// TO SERVER
         -carrying(victim);                                                          	// TO SERVER
         +rescued(X,Y);      // Add to the count of rescued victims.
         +environment(free).
 +!rescue(X,Y) : true 
     <-  +carrying(victim);                                                              // TO SERVER
-        -location(victim,X,Y)[source(doctor)];
+        -location(victim,X,Y)[source(doctor1)];
         -toBeRescued(X,Y);                                                     
         goHospital;                                                            // TO SERVER
         -carrying(victim);                                                              // TO SERVER

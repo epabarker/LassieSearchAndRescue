@@ -20,6 +20,8 @@ public class RobotInfoPane extends JPanel implements ActionListener {
     
     private RobotInfo robotInfo;
 	
+	private boolean Connected = false;
+	
 	public RobotInfoPane(){
 		super();
 		
@@ -48,12 +50,24 @@ public class RobotInfoPane extends JPanel implements ActionListener {
 				return;
 			}
 			
+			setConnected(true);
+			
 			System.out.println("Connection Established");
 			
 			pcComms.start();
-			
-			pcComms.sendCommand("MOVE 0");
 		}
+	}
+	
+	public PCComms getPcComms() {
+		return pcComms;
+	}
+
+	public boolean isConnected() {
+		return Connected;
+	}
+
+	public void setConnected(boolean connected) {
+		Connected = connected;
 	}
 	
 	public RobotInfo getRobotInfo() {

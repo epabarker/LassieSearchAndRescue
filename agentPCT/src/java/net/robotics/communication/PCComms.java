@@ -16,6 +16,8 @@ public class PCComms extends Thread {
 	private Socket socket;
 	private BufferedReader input;
 	private PrintWriter output;
+	
+	private boolean Connected;
 
 	private int id;
 
@@ -96,10 +98,13 @@ public class PCComms extends Thread {
 		} finally {
 		}
 
-		
-		
+	}
 
+	public boolean isConnected() {
+		return Connected;
+	}
 
-
+	public void setConnected(boolean connected) {
+		Connected = connected;
 	}
 }

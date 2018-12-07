@@ -37,6 +37,10 @@ public class MapCanvas extends JPanel {
 		map.getTile(x, y).setType(object);
 		paintComponent(this.getGraphics());
 	}
+	
+	public KnownMap getMap(){
+		return map;
+	}
 
 	private void drawMap(Graphics2D g){
 
