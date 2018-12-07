@@ -21,6 +21,7 @@ at :- location(r,X,Y) & target(X,Y).
 // Plan Library
 // ========================================================================
 
+
 +target(X,Y)[source(percept)]: true
 	<-	+target(X,Y).
 
@@ -63,20 +64,22 @@ at :- location(r,X,Y) & target(X,Y).
 +toBeRescued(X,Y) : true
 	<- .print("Need to come back to",X,",",Y); addToBeRescued(X,Y).
 
-+at : target(X,Y) & toBeRescued(X,Y) & not carrying(victim)
++atTarget : target(X,Y) & toBeRescued(X,Y) & not carrying(victim)
 	<- 	.print("We are at our target, and there is a noncritical we havent rescued yet");
-		!rescue(X,Y);
-		-target(X,Y).
+		!rescue(X,Y).
+		
+		
 
-+at : target(X,Y) & location(victim,X,Y) & not carrying(victim)
++atTarget : target(X,Y) & location(victim,X,Y) & not carrying(victim)
     <-  .print("We are at our target, and there may be a victim here");
     	perceiveColour;
-    	.wait(2000);
-        !checkColour(X,Y);
-        -target(X,Y).
+        !checkColour(X,Y).
+        
 
-+at : target(X,Y) & location(hospital,X,Y)
-	<-	-target(X,Y).
++atTarget : target(X,Y) & location(hospital,X,Y)
+	<-	-atTarget;
+		.print("At Hospital, Removed target ", X,",",Y);
+		-target(X,Y).
 
 +location(r,X,Y)[source(percept)]: true
 	<- .print("Robot is at ",X,", ",Y); addRobot(X,Y).
@@ -85,7 +88,7 @@ at :- location(r,X,Y) & target(X,Y).
     <- .print("Victim could be at ",X,", ",Y); addVictim(X,Y).
 
 -location(victim,X,Y): true
-    <- .print("Victim could be at ",X,", ",Y); removeVictim(X,Y).
+    <- .print("Removing victim at ",X,", ",Y); removeVictim(X,Y).
 
 +location(obstacle,X,Y)[source(D)]: plays(initiator,D)
     <- .print("Obstacle is at ",X,", ",Y); addObstacle(X,Y).
@@ -112,19 +115,19 @@ at :- location(r,X,Y) & target(X,Y).
     <- 	.send(D, tell, requestVictimStatus(X,Y,C));
     	.wait(2000).
 
-+!search : not foundAllVictims & not at
++!search : not foundAllVictims & not at & not target(_,_)
     <-  nextVictim;
     	!at;
         !search.
-+!search : allCriticalRescued & not rescuedAllVictims & not at
++!search : allCriticalRescued & not rescuedAllVictims & not at & not target(_,_)
     <-  nextToBeRescued;
 		!at;
     	!search.
-+!search : rescuedAllVictims & not at
++!search : rescuedAllVictims & not at & not target(_,_)
 	<- 	goHome;
 		//Add target percept from environment.
 		!at.
-+!search : at
++!search : true
 	<- 	.wait(1000);
 		!search.
 
@@ -140,8 +143,9 @@ at :- location(r,X,Y) & target(X,Y).
         !intention(X,Y).
 +!checkColour(X,Y) : not (colour(X,Y,burgandy) | colour(X,Y,cyan))
     <-  .print("Colour not recognised as victim");
-    	-location(victim,X,Y)[source(doctor1)];
-    	+environment(free).
+    	-atTarget;
+        -target(X,Y);
+    	-location(victim,X,Y)[source(doctor1)].
 
 +!intention(X,Y) : critical(X,Y)
     <-  .print("Status: critical, intention: rescue");
@@ -150,7 +154,9 @@ at :- location(r,X,Y) & target(X,Y).
 +!intention(X,Y) : ~critical(X,Y) & not allCriticalRescued
     <-  .print("Status: noncritical, not all critical rescued. Intention: will come back.");
     	+toBeRescued(X,Y);
-    	-location(victim,X,Y)[source(doctor)].
+    	-atTarget;
+        -target(X,Y);
+    	-location(victim,X,Y)[source(doctor1)].
 
 +!intention(X,Y) : ~critical(X,Y) & allCriticalRescued
     <-  .print("Status: noncritical, all critical rescued. Intention: rescue");
@@ -159,10 +165,12 @@ at :- location(r,X,Y) & target(X,Y).
 +!rescue(X,Y) : critical(X,Y)
     <-  ?criticalCount(C);
     	NewCount = C - 1;
+    	-atTarget;
+        -target(X,Y);
     	+criticalCount(NewCount);
     	-criticalCount(C);
     	+carrying(victim);
-        -location(victim,X,Y)[source(doctor)];
+        -location(victim,X,Y)[source(doctor1)];
         goHospital;
         // Add target percept
         !at;
@@ -170,6 +178,8 @@ at :- location(r,X,Y) & target(X,Y).
         +rescued(X,Y).
 +!rescue(X,Y) : toBeRescued(X,Y)
     <-  +carrying(victim);
+    	-atTarget;
+        -target(X,Y);
         -toBeRescued(X,Y);
         goHospital;
         // Add target percept
@@ -178,14 +188,18 @@ at :- location(r,X,Y) & target(X,Y).
         +rescued(X,Y).
 +!rescue(X,Y) : true
     <-  +carrying(victim);
-        -location(victim,X,Y)[source(doctor)];
+    	-atTarget;
+        -target(X,Y);
+        -location(victim,X,Y)[source(doctor1)];
         goHospital;
         // Add target percept
         !at;
         -carrying(victim);
         +rescued(X,Y).
 
-+!at : at.
++!at : at
+	<- .print("At target");
+		+atTarget.
 
 +!at : not at
 	<-	checkLocation;

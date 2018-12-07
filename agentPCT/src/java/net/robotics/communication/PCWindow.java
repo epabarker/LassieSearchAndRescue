@@ -74,6 +74,8 @@ public class PCWindow extends JFrame {
 		
 		pack();
 		setVisible(true);
+		
+		
 	}
 	
 	public MapCanvas getMap() {
