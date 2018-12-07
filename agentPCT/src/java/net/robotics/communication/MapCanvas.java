@@ -64,7 +64,7 @@ public class MapCanvas extends JPanel {
 				Tile t = map.getTile(x, y);
 				
 				int posX = x * ((int)xSize + gap*2);
-				int posY = y * ((int)ySize + gap*2);
+				int posY = (map.getHeight() - y - 1) * ((int)ySize + gap*2);
 
 				//System.out.println(x + "/" + y + "/"+t.getType());
 				
@@ -89,7 +89,7 @@ public class MapCanvas extends JPanel {
 		}
 		
 		g.setColor(Color.DARK_GRAY);
-		g.fillRect(x * ((int)xSize), y  * ((int)ySize), 50, 50);
+		g.fillRect(x * ((int)xSize), (map.getHeight() - y - 1)  * ((int)ySize), 50, 50);
 	}
 
 

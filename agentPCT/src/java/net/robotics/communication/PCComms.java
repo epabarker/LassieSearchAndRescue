@@ -20,6 +20,12 @@ public class PCComms extends Thread {
 	private boolean Connected;
 
 	private int id;
+	
+	private String lastMessage = "//";
+	
+	private boolean moveSuccess;
+	
+	private String color = "";
 
 	public PCComms(String serverAddress, int id) throws IOException{
 		this.id = id;
@@ -27,8 +33,6 @@ public class PCComms extends Thread {
 		input = new BufferedReader(
 				new InputStreamReader(socket.getInputStream()));
 		output = new PrintWriter(socket.getOutputStream(), true);
-		output.println("WELCOME Robot");
-		output.println("MESSAGE Waiting for opponent to connect");
 		System.out.println("INITING...");
 	}
 
@@ -39,16 +43,23 @@ public class PCComms extends Thread {
 
 	public void sendCommand(String command){
 		output.println(command);
+		
+		moveSuccess = false;
+		color = "";
 	}
 
 	public void handleCommands(String command){
+		setLastMessage(command);
+		
 		if(command.contains("COLOR")){
 			System.out.println("C " + command);
+			color = command.split(" ")[1];
 			return;
 		}
 
 		if(command.contains("MOVESUCCESS")){
 			System.out.println("M " + command);
+			moveSuccess = true;
 			return;
 		}
 
@@ -69,7 +80,7 @@ public class PCComms extends Thread {
 			try {
 				text = input.readLine();
 				if(text != null){
-					System.out.println(text);
+					handleCommands(text);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -106,5 +117,26 @@ public class PCComms extends Thread {
 
 	public void setConnected(boolean connected) {
 		Connected = connected;
+	}
+
+	public String getLastMessage() {
+		return lastMessage;
+	}
+	
+	public void clearLastMessage(){
+		lastMessage = "//";
+	}
+
+	private void setLastMessage(String lastMessage) {
+		System.out.println("SETTING LAST MESSAGE: " + lastMessage);
+		this.lastMessage = lastMessage;
+	}
+	
+	public boolean isMoveSuccess(){
+		return moveSuccess;
+	}
+	
+	public String getColor(){
+		return color;
 	}
 }

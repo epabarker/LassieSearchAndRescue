@@ -52,8 +52,8 @@ public class RobotEnv extends Environment {
 			public void run() {
 				super.run();
 				for(;;){
-	
-	
+
+
 					if(movePath == null){
 						//System.out.println("No Move Pth..");
 					} else if(movePath.size() > 0){
@@ -62,7 +62,7 @@ public class RobotEnv extends Environment {
 					} else {
 						movePath = null;
 					}
-	
+
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
@@ -71,14 +71,19 @@ public class RobotEnv extends Environment {
 				}
 			}		
 		};
-		
+
 		moveThread.start();
 	}
 
 	@Override
 	public boolean executeAction(String agName, Structure action) {
 		try {
-			if (action.getFunctor().equals("checkLocation")) {
+			if (action.getFunctor().equals("isConnected")) {
+				if(pc.getRobotInfoPanel().isConnected()){
+					Literal pos1 = Literal.parseLiteral("connected(yee)");
+					addPercept(pos1);
+				}
+			} else if (action.getFunctor().equals("checkLocation")) {
 				updatePercepts();
 			} else if (action.getFunctor().equals("addVictim")) {
 				int x = (int)((NumberTerm)action.getTerm(0)).solve();
@@ -101,7 +106,7 @@ public class RobotEnv extends Environment {
 				pc.getMap().updateMap(TileType.NONCRITICAL, x, y);
 				Location loc1 = new Location(x,y);
 				toRescue.add(loc1);
-				
+
 			} else if (action.getFunctor().equals("addObstacle")) {
 				int x = (int)((NumberTerm)action.getTerm(0)).solve();
 				int y = (int)((NumberTerm)action.getTerm(1)).solve();
@@ -154,7 +159,7 @@ public class RobotEnv extends Environment {
 				System.out.println("-----ASTAR STARTING-----");
 				System.out.println("Victims left... " + victims.size());
 
-				
+
 				for (int i = 0; i < victims.size(); i++) {
 					Location victimLoc = victims.get(i);
 
@@ -171,7 +176,7 @@ public class RobotEnv extends Environment {
 						travelPath = path;
 					}
 				}
-				
+
 				System.out.println("PICKED GOAL: " + travelPath.peekLast().getX() + "/" + travelPath.peekLast().getY());
 				System.out.println("-----ASTAR FINISH-----");
 
@@ -192,10 +197,10 @@ public class RobotEnv extends Environment {
 
 			} else if (action.getFunctor().equals("perceiveColour")) {
 				// I'm not sure if we should have the method to perceive colour situated OUTSIDE of the updatePercepts method. 
-				
+
 				updatePercepts();
 				perceiveColor();
-				
+
 				System.out.println("executing: "+action+", perceiving colour!");
 			} else if (action.getFunctor().equals("nextToBeRescued")) {
 				System.out.println("executing: "+action+", going to victim!");
@@ -233,8 +238,8 @@ public class RobotEnv extends Environment {
 					System.out.println("CALLING MOVE WHILE PATH IS NOT EMPTY: TO RESCUE VICTIM");
 					return false;
 				}
-				
-				
+
+
 			} else if (action.getFunctor().equals("removeToBeRescued")) {
 				// I'm not sure if we should have the method to perceive colour situated OUTSIDE of the updatePercepts method.
 
@@ -246,8 +251,8 @@ public class RobotEnv extends Environment {
 			} else {
 				System.out.println("executing: "+action.getFunctor()+", but not implemented!");
 				return true;
-				
-				
+
+
 				// Note that technically we should return false here.  But that could lead to the
 				// following Jason error (for example):
 				// [ParamedicEnv] executing: addObstacle(2,2), but not implemented!
@@ -302,7 +307,7 @@ public class RobotEnv extends Environment {
 	// this is a test method that goes through the 5 scenarios of scanning colors of 5 possible victim locations and adding a percept of what it percieves
 	void perceiveColor() {	   
 		//to add test if statements with each loction of victims and returning a string of said color
-		Location l1= new Location(2,0);
+		/*Location l1= new Location(2,0);
 		Location l2= new Location(2,2);
 		Location l3= new Location(5,4);
 
@@ -322,13 +327,65 @@ public class RobotEnv extends Environment {
 		} else {
 			col = Literal.parseLiteral("colour("+rx+","+ry+",white)");
 			addPercept(col);
-		}
+		}*/
+		
+		pc.getRobotInfoPanel().getPcComms().sendCommand("GETCOLOR");
 
+		String isColor = pc.getRobotInfoPanel().getPcComms().getColor();
+		
+		while(isColor.isEmpty()){
+			
+			isColor = pc.getRobotInfoPanel().getPcComms().getColor();
+			
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		Literal col;
+		int rx = pc.getRobotInfoPanel().getRobotInfo().getX();
+		int ry = pc.getRobotInfoPanel().getRobotInfo().getY();
+		
+		System.out.println("colour("+rx+","+ry+"," + pc.getRobotInfoPanel().getPcComms().getColor().toLowerCase() + ")");
+		
+		col = Literal.parseLiteral("colour("+rx+","+ry+"," + pc.getRobotInfoPanel().getPcComms().getColor().toLowerCase() + ")");
+		
+		
+		addPercept(col);
 	}
 
 	void moveTo(int x, int y) {
 
 		System.out.println("MOVE: " + x + ", " + y);
+
+		int dx = pc.getRobotInfoPanel().getRobotInfo().getX() - x;
+		int dy = pc.getRobotInfoPanel().getRobotInfo().getY() - y;
+
+		int cardinalHeading = 0;
+
+		if(dx < 0){
+			cardinalHeading = 1;
+		} else if(dx > 0){
+			cardinalHeading = 3;
+		} else if(dy > 0){
+			cardinalHeading = 2;
+		}
+
+		pc.getRobotInfoPanel().getPcComms().sendCommand("MOVE " + cardinalHeading);
+
+
+		while(!pc.getRobotInfoPanel().getPcComms().isMoveSuccess()){
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		pc.getRobotInfoPanel().getPcComms().clearLastMessage();
+		System.out.println("OUTSUCCESS ");
 
 		pc.getRobotInfoPanel().getRobotInfo().setPos(x, y);
 		pc.getMap().updateRobotPosition(x, y);

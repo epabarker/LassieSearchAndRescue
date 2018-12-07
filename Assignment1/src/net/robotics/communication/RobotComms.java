@@ -61,13 +61,7 @@ public class RobotComms extends Thread{
 			if(name == ColorNames.UNKNOWN)
 				name = ColorNames.GREEN;
 			
-			sendCommand("COLOR " + name + "/" + 
-					"LR: " + String.format("%.4f, %.4f ", robot.getLeftColorSensor().getRedColor(), EuclideanColorSensorMonitor.getColorRanges(name).getR()) +
-					"LG: " + String.format("%.4f, %.4f ", robot.getLeftColorSensor().getGreenColor(), EuclideanColorSensorMonitor.getColorRanges(name).getG()) +
-					"LB: " + String.format("%.4f, %.4f ", robot.getLeftColorSensor().getBlueColor(), EuclideanColorSensorMonitor.getColorRanges(name).getB()) +
-					"RR: " + String.format("%.4f, %.4f ", robot.getRightColorSensor().getRedColor(), EuclideanColorSensorMonitor.getColorRanges(name).getR()) +
-					"RG: " + String.format("%.4f, %.4f ", robot.getRightColorSensor().getGreenColor(), EuclideanColorSensorMonitor.getColorRanges(name).getG()) +
-					"RB: " + String.format("%.4f, %.4f ", robot.getRightColorSensor().getBlueColor(), EuclideanColorSensorMonitor.getColorRanges(name).getB()));
+			sendCommand("COLOR " + name);
 			
 			return;
 		}
