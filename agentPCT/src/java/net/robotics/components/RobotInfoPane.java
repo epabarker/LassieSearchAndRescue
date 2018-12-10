@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -13,6 +14,7 @@ import net.robotics.communication.PCComms;
 public class RobotInfoPane extends JPanel implements ActionListener {
 	
 	private JTextField ipAddress;
+	private JLabel robotInfoDisplay;
 	private JButton confirmButton;
     private static final String ADDRESS = "192.168.70.64";
     
@@ -35,6 +37,8 @@ public class RobotInfoPane extends JPanel implements ActionListener {
 		
 		add(ipAddress);
 		add(confirmButton);
+		
+		
 	}
 
 	@Override
@@ -55,6 +59,13 @@ public class RobotInfoPane extends JPanel implements ActionListener {
 			System.out.println("Connection Established");
 			
 			pcComms.start();
+			
+			/*remove(ipAddress);
+			remove(confirmButton);
+			
+			add(robotInfoDisplay);
+			
+			repaint();*/
 		}
 	}
 	
@@ -76,6 +87,10 @@ public class RobotInfoPane extends JPanel implements ActionListener {
 
 	private void setRobotInfo(RobotInfo robotInfo) {
 		this.robotInfo = robotInfo;
+	}
+	
+	public JLabel getRobotInfoDisplay(){
+		return robotInfoDisplay;
 	}
 
 	public class RobotInfo {

@@ -11,7 +11,7 @@ foundAllVictims :- .count(foundV(_,_), 3).
 
 rescuedAllVictims :- .count(rescued(_,_), 3).
 
-plays(initiator,doctor4).
+plays(initiator,doctor2).
 
 location(r,0,0)[source(percept)].
 
@@ -139,18 +139,18 @@ at :- location(r,X,Y) & target(X,Y).
 +!checkColour(X,Y) : colour(X,Y,burgandy)
     <-  .print("Colour recognised as victim");
     	+foundV(X,Y);
-    	!requestVictimStatus(doctor4,X,Y,burgandy);
+    	!requestVictimStatus(doctor2,X,Y,burgandy);
         !intention(X,Y).
 +!checkColour(X,Y) : colour(X,Y,cyan)
     <-  .print("Colour recognised as victim");
     	+foundV(X,Y);
-    	!requestVictimStatus(doctor4,X,Y,cyan);
+    	!requestVictimStatus(doctor2,X,Y,cyan);
         !intention(X,Y).
 +!checkColour(X,Y) : not (colour(X,Y,burgandy) | colour(X,Y,cyan))
     <-  .print("Colour not recognised as victim");
     	-atTarget;
         -target(X,Y);
-    	-location(victim,X,Y)[source(doctor4)].
+    	-location(victim,X,Y)[source(doctor2)].
 
 +!intention(X,Y) : critical(X,Y)
     <-  .print("Status: critical, intention: rescue");
@@ -161,7 +161,7 @@ at :- location(r,X,Y) & target(X,Y).
     	+toBeRescued(X,Y);
     	-atTarget;
         -target(X,Y);
-    	-location(victim,X,Y)[source(doctor4)].
+    	-location(victim,X,Y)[source(doctor2)].
 
 +!intention(X,Y) : ~critical(X,Y) & allCriticalRescued
     <-  .print("Status: noncritical, all critical rescued. Intention: rescue");
@@ -175,7 +175,7 @@ at :- location(r,X,Y) & target(X,Y).
     	+criticalCount(NewCount);
     	-criticalCount(C);
     	+carrying(victim);
-        -location(victim,X,Y)[source(doctor4)];
+        -location(victim,X,Y)[source(doctor2)];
         goHospital;
         .print("Going to hospital");
         !at;
@@ -195,7 +195,7 @@ at :- location(r,X,Y) & target(X,Y).
     <-  +carrying(victim);
     	-atTarget;
         -target(X,Y);
-        -location(victim,X,Y)[source(doctor4)];
+        -location(victim,X,Y)[source(doctor2)];
         goHospital;
         .print("Going to hospital");
         !at;

@@ -66,6 +66,12 @@ public class RobotComms extends Thread{
 			return;
 		}
 		
+		if(commands[0].toUpperCase().contains("GETINFO")){
+			sendCommand("RINFO " + robot.getRobotInfo());
+			
+			return;
+		}
+		
 		if(commands[0].toUpperCase().contains("MOVE")){
 			int d = 0;
 			if(commands.length > 1)
@@ -95,6 +101,21 @@ public class RobotComms extends Thread{
 			
 			sendCommand("DIST " + robot.getDistanceOnHeading(d));
 			
+			return;
+		}
+		
+		if(commands[0].toUpperCase().contains("PICKUP")){
+			boolean d = false;
+			if(commands.length > 1)
+				d = Boolean.parseBoolean(commands[1]);
+			
+			robot.pickUpVictim(d);
+			
+			return;
+		}
+		
+		if(commands[0].toUpperCase().contains("DROP")){
+			robot.dropVictim();
 			return;
 		}
 		

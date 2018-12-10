@@ -26,6 +26,8 @@ public class PCComms extends Thread {
 	private boolean moveSuccess;
 	
 	private String color = "";
+	
+	private String robotInfo;
 
 	public PCComms(String serverAddress, int id) throws IOException{
 		this.id = id;
@@ -51,6 +53,8 @@ public class PCComms extends Thread {
 	public void handleCommands(String command){
 		setLastMessage(command);
 		
+		String[] commands = command.split(" ");
+		
 		if(command.contains("COLOR")){
 			System.out.println("C " + command);
 			color = command.split(" ")[1];
@@ -64,6 +68,37 @@ public class PCComms extends Thread {
 		}
 
 		if(command.contains("DIST")){
+			System.out.println("F " + command);
+			return;
+		}
+		
+		if(command.contains("RINFO")){
+			Integer currentHeading = 0;
+			if(commands.length > 1)
+				currentHeading = Integer.parseInt(commands[1]);
+			
+			float gyroAngle = 0;
+			if(commands.length > 2)
+				gyroAngle = Float.parseFloat(commands[2]);
+			
+			float exptAngle = 0;
+			if(commands.length > 3)
+				exptAngle = Float.parseFloat(commands[3]);
+			
+			String lCN = "EMPTY";
+			if(commands.length > 4)
+				lCN = commands[4];
+			
+			String rCN = "EMPTY";
+			if(commands.length > 5)
+				rCN = commands[5];
+			
+			String mp = "MPEMPTY";
+			if(commands.length > 6)
+				mp = commands[6];
+			
+			
+			
 			System.out.println("F " + command);
 			return;
 		}

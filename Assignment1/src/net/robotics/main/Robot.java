@@ -1,7 +1,8 @@
 package net.robotics.main;
 
 
-import java.io.IOException;	
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.util.Date;
 
@@ -24,6 +25,7 @@ import lejos.internal.ev3.EV3LED;
 import lejos.robotics.localization.OdometryPoseProvider;
 import lejos.robotics.navigation.MovePilot;
 import lejos.robotics.SampleProvider;
+import lejos.robotics.geometry.Point;
 import net.robotics.screen.LCDRenderer;
 import net.robotics.sensor.EuclideanColorSensorMonitor;
 import net.robotics.sensor.EuclideanColorSensorMonitor.ColorNames;
@@ -34,22 +36,22 @@ import net.robotics.communication.ServerSide;
 
 public class Robot {
 	public LCDRenderer screen;
-	
+
 	private EuclideanColorSensorMonitor leftColorSensor, rightColorSensor;
 	private GyroMonitor gyroMonitor;
 	private InfraredSensorMonitor irMonitor;
-	
+
 	private LED led;
 	private SoundMonitor audio;
 	private MovePilot pilot;
 	private OdometryPoseProvider opp;
-	
+
 	private RobotComms robotComms;
-	
+
 	public int overrideVisitAmount = 0;
-	
+
 	private boolean mapFinished;
-	
+
 	public static Robot current;
 
 	public static void main(String[] args) throws IOException{
@@ -59,7 +61,9 @@ public class Robot {
 
 	public Robot() {
 		current = this;
-		
+
+		createKeyListeners();
+
 		Brick myEV3 = BrickFinder.getDefault();
 		led = myEV3.getLED();
 		audio = new SoundMonitor(myEV3.getAudio());
@@ -69,95 +73,133 @@ public class Robot {
 		screen.writeTo(new String[]{
 				"Booting..."
 		}, 0, 60, GraphicsLCD.LEFT, Font.getDefaultFont());
-		
+
 		leftColorSensor = new EuclideanColorSensorMonitor(this, new EV3ColorSensor(myEV3.getPort("S1")));
 		rightColorSensor = new EuclideanColorSensorMonitor(this, new EV3ColorSensor(myEV3.getPort("S4")));
 		gyroMonitor = new GyroMonitor(this, new EV3GyroSensor(myEV3.getPort("S2")), 1);
 		irMonitor = new InfraredSensorMonitor(this, new EV3IRSensor(myEV3.getPort("S3")), Motor.C, 16);
 
 		leftColorSensor.configure(true); //Only need to configure once as it sets a static object
-		
+
 		irMonitor.start();
-		
+
 		gyroMonitor.start();
-		
+
 		audio.start();
 
-		
+
 	}
-	
+
 	private void startRobot() {
 		pilot = ChasConfig.getPilot();
 		pilot.setLinearSpeed(11);
-		
+
 		// Create a pose provider and link it to the move pilot
 		opp = new OdometryPoseProvider(pilot);
-		
-		createKeyListeners();
-		
+
+		gyroMonitor.resetGyro();
+
+		//mainLoop();
+
 		try {
+			screen.clearScreen();
+			screen.writeTo(new String[]{
+					"READY TO",
+					"CONNECT"
+			}, 0, 0, GraphicsLCD.LEFT, Font.getLargeFont());
+
 			ServerSocket s = new ServerSocket(RobotComms.PORT);
 			robotComms = new RobotComms(this, s.accept());
+			gyroMonitor.resetGyro();
 			robotComms.listen();
 		} catch (Exception e) {
-        	screen.clearScreen();
-        	screen.writeTo(new String[]{
-    				e.getMessage(),
-				e.getStackTrace()[0].getMethodName() + ":" + e.getStackTrace()[0].getLineNumber(),
-				e.getStackTrace()[1].getMethodName() + ":" + e.getStackTrace()[1].getLineNumber(),
-				e.getStackTrace()[2].getMethodName() + ":" + e.getStackTrace()[2].getLineNumber(),
-				e.getStackTrace()[3].getMethodName() + ":" + e.getStackTrace()[3].getLineNumber(),
+			screen.clearScreen();
+			screen.writeTo(new String[]{
+					e.getMessage(),
+					e.getStackTrace()[0].getMethodName() + ":" + e.getStackTrace()[0].getLineNumber(),
+					e.getStackTrace()[1].getMethodName() + ":" + e.getStackTrace()[1].getLineNumber(),
+					e.getStackTrace()[2].getMethodName() + ":" + e.getStackTrace()[2].getLineNumber(),
+					e.getStackTrace()[3].getMethodName() + ":" + e.getStackTrace()[3].getLineNumber(),
 			}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
 		}
-		
-		//mainLoop();
+
+
 	}
-	
+
 	public void closeProgram(){
 		System.exit(0);
 	}
-	
+
 	private void createKeyListeners(){
 		Button.ESCAPE.addKeyListener(new KeyListener() {
 			public void keyReleased(Key k) {
 				Robot.current.closeProgram();
 			}
-			
+
 			public void keyPressed(Key k) {
 			}
 		});
-		
-		
+
+
 		Button.RIGHT.addKeyListener(new KeyListener() {
 			public void keyReleased(Key k) {
 				Robot.current.getScreen().cycleMode();
 			}
-			
+
 			public void keyPressed(Key k) {
 			}
 		});
-		
+
 		Button.DOWN.addKeyListener(new KeyListener() {
 			public void keyReleased(Key k) {
 				Robot.current.resetScreen();
 			}
-			
+
 			public void keyPressed(Key k) {
 			}
 		});
 	}
 
 	//localise
-	public void localise(){
-		pilot.setLinearSpeed(4);
-		pilot.setLinearAcceleration(3);
+	public boolean localise(){
+
+		double linSpeed = pilot.getLinearSpeed();
+		double linAcc = pilot.getLinearAcceleration();
+		double angularSpeed = pilot.getAngularSpeed();
+		double angularAcc = pilot.getAngularAcceleration();
+
+		pilot.setLinearSpeed(3);
+		pilot.setLinearAcceleration(10);
 		pilot.setAngularSpeed(40);
 		pilot.setAngularAcceleration(30);
-		
-		boolean foundblack = false;
-		EuclideanColorSensorMonitor onBlack, other;
+
+
+
 		long timeSince = new Date().getTime();
-		
+
+		gyroMonitor.resetGyro();
+
+		ColorNames floorColor = leftColorSensor.getColor();
+		if(floorColor == ColorNames.BLACK)
+			floorColor = rightColorSensor.getColor();
+		if(floorColor == ColorNames.BLACK){
+			pilot.setLinearSpeed(linSpeed);
+			pilot.setLinearAcceleration(linAcc);
+			pilot.setAngularSpeed(angularSpeed);
+			pilot.setAngularAcceleration(angularAcc);
+			return true;
+		}
+
+		if(floorColor != ColorNames.WHITE){
+			pilot.setLinearSpeed(linSpeed);
+			pilot.setLinearAcceleration(linAcc);
+			pilot.setAngularSpeed(angularSpeed);
+			pilot.setAngularAcceleration(angularAcc);
+			return false;
+		}
+
+		pilot.forward();
+
 		while(true){
 			if(new Date().getTime() - timeSince > 200){
 				timeSince = new Date().getTime();
@@ -165,40 +207,23 @@ public class Robot {
 				screen.writeTo(new String[]{
 						"L: " + leftColorSensor.getColor(),
 						"R: " + rightColorSensor.getColor(),
-						"LR: " + String.format("%.4f, %.4f", leftColorSensor.getRedColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHR()),
-						"LG: " + String.format("%.4f, %.4f", leftColorSensor.getGreenColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHG()),
-						"LB: " + String.format("%.4f, %.4f", leftColorSensor.getBlueColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getHR()),
-						"RR: " + String.format("%.4f, %.4f", rightColorSensor.getRedColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLR()),
-						"RG: " + String.format("%.4f, %.4f", rightColorSensor.getGreenColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLG()),
-						"RB: " + String.format("%.4f, %.4f", rightColorSensor.getBlueColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLB()),
+						"G: " + gyroMonitor.getAngle(),
+
 				}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
 			}
-			
-			if(leftColorSensor.getColor() == ColorNames.BLACK || rightColorSensor.getColor() == ColorNames.BLACK){
-				if(leftColorSensor.getColor() == ColorNames.BLACK && rightColorSensor.getColor() != ColorNames.BLACK){
-					
-					if(!foundblack){
-						foundblack = true;
-						pilot.stop();
-					}
-					
-					onBlack = leftColorSensor;
-					other = rightColorSensor;
-					
-					pilot.rotate(-4);
-					pilot.travel(0.1f);
-				} else if(leftColorSensor.getColor() != ColorNames.BLACK && rightColorSensor.getColor() == ColorNames.BLACK){
-					if(!foundblack){
-						foundblack = true;
-						pilot.stop();
-					}
-					
-					other = leftColorSensor;
-					onBlack = rightColorSensor;
-					
-					pilot.rotate(4);
-					pilot.travel(0.1f);
-				} else if(leftColorSensor.getColor() == ColorNames.BLACK && rightColorSensor.getColor() == ColorNames.BLACK){
+
+			boolean leftMetLine = leftColorSensor.getColor() != floorColor;
+			boolean rightMetLine = rightColorSensor.getColor() != floorColor;
+			boolean same = leftColorSensor.getColor() == rightColorSensor.getColor();
+
+			if(leftMetLine || rightMetLine){
+				if(leftMetLine && !rightMetLine){
+					Motor.B.stop();
+					Motor.D.forward();
+				} else if(!leftMetLine && rightMetLine){
+					Motor.D.stop();
+					Motor.B.forward();
+				} else if(same){
 					pilot.stop();
 
 					screen.clearScreen();
@@ -213,237 +238,292 @@ public class Robot {
 							"RB: " + String.format("%.4f, %.4f", rightColorSensor.getBlueColor(), EuclideanColorSensorMonitor.getColorRanges(ColorNames.BLACK).getLB()),
 							"Exited."
 					}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-					
-					break; //return if localised
-				}
-			} else {
-				pilot.travel(3);
-			}
-			
-			
-		}
-		
-		pilot.travel(-6);
-	}
-		
-    // ==================================================================================================
-    // ================================  START ROBOT SERVER COMMANDS ====================================
-    // ==================================================================================================
 
-	
+					break; //return if localised
+				} else {
+					if(!Motor.D.isMoving() && !Motor.B.isMoving()){
+						pilot.forward();
+					}
+				}
+			}
+
+
+		}
+
+		pilot.travel(-8);
+
+		pilot.setLinearSpeed(linSpeed);
+		pilot.setLinearAcceleration(linAcc);
+		pilot.setAngularSpeed(angularSpeed);
+		pilot.setAngularAcceleration(angularAcc);
+		return true;
+	}
+
+	// ==================================================================================================
+	// ================================  START ROBOT SERVER COMMANDS ====================================
+	// ==================================================================================================
+
+
 	//use IR sensor to get distance, get rotation amount
 	public float getDistanceOnHeading(int heading){
 		if(heading == 3)
 			irMonitor.rotate(90);
 		if(heading == 1)
 			irMonitor.rotate(-90);
-		
+
 		irMonitor.clear();
 		try {
 			Thread.sleep(60*6);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 		if(heading == 3)
 			irMonitor.rotate(-90);
 		if(heading == 1)
 			irMonitor.rotate(90);
-		
+
 		return irMonitor.getDistance();
 	}
-	
+
 	private int CurrentHeading = 0;
-	
+	private float expectedRotationAmount = 0;
+	private int Revolutions = 0;
+
 	//turn to heading
 	public void turnToHeading(int desiredHeading) {
-		pilot.setAngularSpeed(80);
-		pilot.setAngularAcceleration(60);
 		
-		int headingDifference = desiredHeading - CurrentHeading;
-		int rotationAmount = 0;
+		MoveProcess = "TURNING";
 		
-		switch(headingDifference) {
-			case 1: 
-			case -3:
-				rotationAmount = 90;
-				break;
-			case 2: 
-			case -2:
-				rotationAmount = 180;
-				break;
-			case -1:
-			case 3:
-				rotationAmount = -90;
-				break;
+		double angularSpeed = pilot.getAngularSpeed();
+		double angularAcc = pilot.getAngularAcceleration();
+		pilot.setAngularSpeed(100);
+		pilot.setAngularAcceleration(100);
+
+		int headingDifference = ((desiredHeading - CurrentHeading) % 4) ;
+		
+		if(headingDifference == 0){
+			return;
 		}
-		
-		if(desiredHeading > 3)
-			desiredHeading = 0;
-		if(desiredHeading < 0)
-			desiredHeading = 3;
-		
+
+		if(headingDifference == -3)
+			headingDifference = 1;
+		if(headingDifference == 3)
+			headingDifference = -1;
+
+		Revolutions += Math.abs(headingDifference);
+
+		int rotationAmount = headingDifference * 90;
+
+		expectedRotationAmount+=rotationAmount;
+
 		pilot.rotate(rotationAmount);
-		
+
 		CurrentHeading = desiredHeading;
+
+		pilot.setAngularSpeed(angularSpeed);
+		pilot.setAngularAcceleration(angularAcc);
+
+		correctHeadingAcc();
 	}
+
+	private void correctHeadingAcc(){
+		
+		MoveProcess = "CORRECTHEADINGACC";
+		
+		double angularSpeed = pilot.getAngularSpeed();
+		double angularAcc = pilot.getAngularAcceleration();
+		pilot.setAngularSpeed(50);
+		pilot.setAngularAcceleration(50);
+
+		float Angle = gyroMonitor.getAngle();
+
+		if(Angle != expectedRotationAmount){
+			for (int i = 0; i < 5; i++) {
+				Angle = gyroMonitor.getAngle();
+				float diff = (expectedRotationAmount - Angle);
+				pilot.rotate(diff);
+
+				screen.clearScreen();
+				screen.writeTo(new String[]{
+						"Diff: " + diff,
+						"RotationAcc: " + expectedRotationAmount,
+						"Angle: " + Angle,
+				}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
+
+				if(gyroMonitor.getAngle() == expectedRotationAmount){
+					break;
+				}
+			}
+		}
+		pilot.setAngularSpeed(angularSpeed);
+		pilot.setAngularAcceleration(angularAcc);
+	}
+
+	int movements = 0;
 	
+	String MoveProcess = "Empty";
+
+	public String getRobotInfo(){
+		return CurrentHeading + " " + 
+				gyroMonitor.getAngle() + " " + 
+				expectedRotationAmount + " " + 
+				leftColorSensor.getColor() + " " + 
+				rightColorSensor.getColor() + " " +
+				MoveProcess;
+	}
+
 	//move in heading
 	public boolean move(int heading){
+		int initialHeading = CurrentHeading;
+
 		turnToHeading(heading);
-		
-		pilot.setLinearSpeed(8);
-		pilot.setLinearAcceleration(6);
-		
-		pilot.forward();
+
+		//IF WE GET EVERYTHING ELSE WORKING WE CAN IMPROVE THIS...
+		//LOCALISE AGAINST PERPENDICULAR EDGE
+
+		/*if(Revolutions > 7 || movements > 2){
+			if(localise()){
+
+				Revolutions = 0;
+				gyroMonitor.resetGyro();
+				expectedRotationAmount = 0;
+				movements = 0;
+
+				turnToHeading(CurrentHeading+1);
+
+				float disIF = irMonitor.getMedianDistance();
+
+				if(disIF > 24){
+					localise();
+				}
+
+				turnToHeading(CurrentHeading-1);
+
+
+			}
+		}*/
+
+		if(heading == initialHeading){
+			movements++;
+		}
+
+		pilot.setLinearSpeed(10);
+		pilot.setLinearAcceleration(5);
+
+
+		Motor.B.setSpeed(45);
+		Motor.D.setSpeed(45);
+
+		Motor.B.setAcceleration(6000);
+		Motor.D.setAcceleration(6000);
+
+		Motor.B.forward();
+		Motor.D.forward();
+
+		float sGyro = -1000;
+
+		MoveProcess = "FINDINGLINE";
 		
 		ColorNames lcn, rcn;
 		do{
 			lcn = leftColorSensor.getColor();
 			rcn = rightColorSensor.getColor();
+
+			if(lcn == ColorNames.BLACK){
+				Motor.B.stop();
+				if(sGyro == -1000){
+					MoveProcess = "FINDINGOTHERLINE";
+					sGyro = gyroMonitor.getAngle();
+				}
+			}
+
+			if(rcn == ColorNames.BLACK){
+				Motor.D.stop();
+				if(sGyro == -1000){
+					MoveProcess = "FINDINGOTHERLINE";
+					sGyro = gyroMonitor.getAngle();
+				}
+			}
+
+			screen.clearScreen();
+			screen.writeTo(new String[]{
+					"l: " + sGyro,
+					"r: " + gyroMonitor.getAngle(),
+					"bb: " + (gyroMonitor.getAngle() - sGyro)
+			}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
+
 			/*if(CHECK IR SENSOR){
 				pilot.travel(-4.0f);
 				return false;
 			}*/
-		}while(lcn != ColorNames.BLACK && rcn != ColorNames.BLACK && !(pilot.getMovement().getDistanceTraveled() > 20f));
+		}while(Motor.D.isMoving() || Motor.B.isMoving());
+
+		/*screen.clearScreen();
+		screen.writeTo(new String[]{
+				"OUT",
+				"l: " + lcn,
+				"r: " + rcn,
+		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());*/
+
+		gyroMonitor.resetGyro();
+		expectedRotationAmount = 0;
 		
-		if(lcn == ColorNames.BLACK || rcn == ColorNames.BLACK){
-			pilot.travel(15.0f);
-		} else {
-			pilot.travel(5.0f);
-		}
+		pilot.stop();
+
+		MoveProcess = "FINALISINGMOVEMENT";
 		
+		pilot.travel(17.5f);
+
 		return true;
 	}
-	
+
 	//get Color underneath
 	public String getColor(){
 		ColorNames left = leftColorSensor.getColor();
 		ColorNames right = rightColorSensor.getColor();
 		return (left == ColorNames.UNKNOWN) ? right.toString() : left.toString();
 	}
-	
+
 	//finishes robot
 	public void finish(){
 		closeProgram();
 	}
-	
+
 	//VERIFIED
 	//pick up victim only change lights
 	public void pickUpVictim(boolean critical){
 		getLED().setPattern((critical) ? EV3LED.COLOR_RED : EV3LED.COLOR_ORANGE, EV3LED.PATTERN_HEARTBEAT);
 	}
-	
-	
+
+
 	//VERIFIED
 	//pick up victim only change lights
 	public void dropVictim(){
 		getLED().setPattern(EV3LED.COLOR_NONE, EV3LED.PATTERN_ON);
 	}
-    // ==================================================================================================
-    // ================================  END ROBOT SERVER COMMANDS ======================================
-    // ==================================================================================================
+	// ==================================================================================================
+	// ================================  END ROBOT SERVER COMMANDS ======================================
+	// ==================================================================================================
 
-	
+
 	public void mainLoop(){
-		/*move(1);
-		screen.clearScreen();
-		screen.writeTo(new String[]{
-				"C: " + getColor(),
-				"D: " + getDistanceOnHeading(0)
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-		Button.waitForAnyPress();
-		move(2);
-		screen.clearScreen();
-		screen.writeTo(new String[]{
-				"C: " + getColor(),
-				"D: " + getDistanceOnHeading(0)
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-		Button.waitForAnyPress();
-		move(3);
-		screen.clearScreen();
-		screen.writeTo(new String[]{
-				"C: " + getColor(),
-				"D: " + getDistanceOnHeading(0)
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-		Button.waitForAnyPress();
 		move(0);
-		screen.clearScreen();
-		screen.writeTo(new String[]{
-				"C: " + getColor(),
-				"D: " + getDistanceOnHeading(0)
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-		Button.waitForAnyPress();
-		screen.clearScreen();
-		screen.writeTo(new String[]{
-				"C: " + getColor(),
-				"D: " + getDistanceOnHeading(1)
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-		Button.waitForAnyPress();
-		screen.clearScreen();
-		screen.writeTo(new String[]{
-				"C: " + getColor(),
-				"D: " + getDistanceOnHeading(3)
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-		Button.waitForAnyPress();
-		screen.clearScreen();
-		screen.writeTo(new String[]{
-				"C: " + getColor(),
-				"D: " + getDistanceOnHeading(2)
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-		Button.waitForAnyPress();
-		finish();*/
-		/*
-		screen.clearScreen();
-		screen.writeTo(new String[]{
-				"G: " + gyroMonitor.getMedianAngle()
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-		
-		double ar = (Math.random()*15)-30;
-		
-		pilot.rotate(ar);
-		
-		screen.clearScreen();
-		screen.writeTo(new String[]{
-				"M1: " + gyroMonitor.getMedianAngle(),
-				"A: " + ar
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-		
-		Button.waitForAnyPress();
-		
-		screen.clearScreen();
-		screen.writeTo(new String[]{
-				"M2: " + gyroMonitor.getMedianAngle(),
-				"A: " + ar
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-		
-		Button.waitForAnyPress();
-		
-		screen.clearScreen();
-		screen.writeTo(new String[]{
-				"A1: " + gyroMonitor.getAngle(),
-				"A: " + ar
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-		
-		Button.waitForAnyPress();
-		
-		screen.clearScreen();
-		screen.writeTo(new String[]{
-				"1: " + gyroMonitor.rotations[0],
-				"2: " + gyroMonitor.rotations[1],
-				"3: " + gyroMonitor.rotations[2],
-				"4: " + gyroMonitor.rotations[3],
-				"5: " + gyroMonitor.rotations[4],
-				"A: " + ar
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-		*/
+		move(0);
+		move(0);
+
+
+		/*screen.clearScreen();
+    	screen.writeTo(new String[]{
+				"Angle: " + gyroMonitor.getAngle()
+		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());*/
 	}
-		
+
 	public void resetScreen(){
-		
+
 		LocalEV3.get().getTextLCD().clear();
 		LocalEV3.get().getGraphicsLCD().clear();
-			
+
 		screen.clearScreen();
 		screen = new LCDRenderer(LocalEV3.get().getGraphicsLCD());
 		screen.clearScreen();
@@ -452,29 +532,29 @@ public class Robot {
 	public LCDRenderer getScreen(){
 		return screen;
 	}
-	
+
 	public OdometryPoseProvider getOpp() {
 		return opp;
 	}
-	
+
 
 	public MovePilot getPilot() {
 		return pilot;
 	}
 
-	
+
 	public EuclideanColorSensorMonitor getLeftColorSensor() {
 		return leftColorSensor;
 	}
-	
+
 	public EuclideanColorSensorMonitor getRightColorSensor() {
 		return rightColorSensor;
 	}
-	
+
 	public EV3LED getLED() {
 		return (EV3LED) led;
 	}
-	
+
 	public SoundMonitor getSoundMonitor() {
 		return audio;
 	}
