@@ -92,7 +92,6 @@ public class Robot {
 
 	private void startRobot() {
 		pilot = ChasConfig.getPilot();
-		pilot.setLinearSpeed(11);
 
 		// Create a pose provider and link it to the move pilot
 		opp = new OdometryPoseProvider(pilot);
@@ -384,8 +383,8 @@ public class Robot {
 		
 		double angularSpeed = pilot.getAngularSpeed();
 		double angularAcc = pilot.getAngularAcceleration();
-		pilot.setAngularSpeed(100);
-		pilot.setAngularAcceleration(100);
+		pilot.setAngularSpeed(700);
+		pilot.setAngularAcceleration(400);
 		
 		amount = amount % 4;	
 		
@@ -406,14 +405,16 @@ public class Robot {
 	}
 	
 	public boolean independentMove(){
-		pilot.setLinearSpeed(10);
-		pilot.setLinearAcceleration(5);
+		pilot.setLinearSpeed(60);
+		pilot.setLinearAcceleration(30);
+		
+		pilot.travel(5.5f);
 
-		Motor.B.setSpeed(45);
-		Motor.D.setSpeed(45);
+		Motor.B.setSpeed(50);
+		Motor.D.setSpeed(50);
 
-		Motor.B.setAcceleration(6000);
-		Motor.D.setAcceleration(6000);
+		Motor.B.setAcceleration(8000);
+		Motor.D.setAcceleration(8000);
 
 		Motor.B.forward();
 		Motor.D.forward();
@@ -458,7 +459,7 @@ public class Robot {
 
 		MoveProcess = "IFINALISINGMOVEMENT";
 		
-		pilot.travel(17.5f);
+		pilot.travel(16.5f);
 
 		return true;
 	}
