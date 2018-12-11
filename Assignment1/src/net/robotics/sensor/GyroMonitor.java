@@ -51,7 +51,9 @@ public class GyroMonitor extends Thread{
 		super.start();
 	}
 
-
+	public EV3GyroSensor getSensor(){
+		return gyroSensor;
+	}
 
 	public void configure(){
 	}

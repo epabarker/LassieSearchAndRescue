@@ -6,7 +6,7 @@ MAS agentPCT {
 
 	agents:
 		paramedicAgent;
-		doctor1;
+		doctor4;
 
 	aslSourcePath:
 		"src/asl";
