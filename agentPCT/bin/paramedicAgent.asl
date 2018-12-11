@@ -11,9 +11,7 @@ foundAllVictims :- .count(foundV(_,_), 3).
 
 rescuedAllVictims :- .count(rescued(_,_), 3).
 
-plays(initiator,doctor2).
-
-location(r,0,0)[source(percept)].
+plays(initiator,doctor4).
 
 at :- location(r,X,Y) & target(X,Y).
 
@@ -105,11 +103,11 @@ at :- location(r,X,Y) & target(X,Y).
 +~critical(X,Y): true
     <-  .print("The victim at ", X, ",", Y, " is not critical").
 
-+carrying(victim): true
++carrying(Status): true
 	<-	.print("Putting victim on stretcher");
-		takeVictim.
+		takeVictim(Status).
 
--carrying(victim): true
+-carrying(Status): true
 	<-	.print("Taking victim off stretcher");
 		dropVictim.
 
@@ -139,18 +137,18 @@ at :- location(r,X,Y) & target(X,Y).
 +!checkColour(X,Y) : colour(X,Y,burgandy)
     <-  .print("Colour recognised as victim");
     	+foundV(X,Y);
-    	!requestVictimStatus(doctor2,X,Y,burgandy);
+    	!requestVictimStatus(doctor4,X,Y,burgandy);
         !intention(X,Y).
 +!checkColour(X,Y) : colour(X,Y,cyan)
     <-  .print("Colour recognised as victim");
     	+foundV(X,Y);
-    	!requestVictimStatus(doctor2,X,Y,cyan);
+    	!requestVictimStatus(doctor4,X,Y,cyan);
         !intention(X,Y).
 +!checkColour(X,Y) : not (colour(X,Y,burgandy) | colour(X,Y,cyan))
     <-  .print("Colour not recognised as victim");
     	-atTarget;
         -target(X,Y);
-    	-location(victim,X,Y)[source(doctor2)].
+    	-location(victim,X,Y)[source(doctor4)].
 
 +!intention(X,Y) : critical(X,Y)
     <-  .print("Status: critical, intention: rescue");
@@ -161,7 +159,7 @@ at :- location(r,X,Y) & target(X,Y).
     	+toBeRescued(X,Y);
     	-atTarget;
         -target(X,Y);
-    	-location(victim,X,Y)[source(doctor2)].
+    	-location(victim,X,Y)[source(doctor4)].
 
 +!intention(X,Y) : ~critical(X,Y) & allCriticalRescued
     <-  .print("Status: noncritical, all critical rescued. Intention: rescue");
@@ -174,32 +172,32 @@ at :- location(r,X,Y) & target(X,Y).
         -target(X,Y);
     	+criticalCount(NewCount);
     	-criticalCount(C);
-    	+carrying(victim);
-        -location(victim,X,Y)[source(doctor2)];
+    	+carrying(1);
+        -location(victim,X,Y)[source(doctor4)];
         goHospital;
         .print("Going to hospital");
         !at;
-        -carrying(victim);
+        -carrying(1);
         +rescued(X,Y).
 +!rescue(X,Y) : toBeRescued(X,Y)
-    <-  +carrying(victim);
+    <-  +carrying(0);
     	-atTarget;
         -target(X,Y);
         -toBeRescued(X,Y);
         goHospital;
         .print("Going to hospital");
         !at;
-        -carrying(victim);
+        -carrying(0);
         +rescued(X,Y).
 +!rescue(X,Y) : true
-    <-  +carrying(victim);
+    <-  +carrying(0);
     	-atTarget;
         -target(X,Y);
-        -location(victim,X,Y)[source(doctor2)];
+        -location(victim,X,Y)[source(doctor4)];
         goHospital;
         .print("Going to hospital");
         !at;
-        -carrying(victim);
+        -carrying(0);
         +rescued(X,Y).
 
 +!at : at
@@ -212,8 +210,17 @@ at :- location(r,X,Y) & target(X,Y).
 		!at.
 		
 		
-+!connection : connected(_)
++!locationKnown : location(r,_,_)
 	<-	!search.
+
++!locationKnown : true
+	<-	.print("ENACTING MCL");
+		findLocation;
+		.wait(1000);
+		!locationKnown.
+		
++!connection : connected(_)
+	<-	!locationKnown.
 
 +!connection : true
 	<-	.print("CHECKING CONNECTION");

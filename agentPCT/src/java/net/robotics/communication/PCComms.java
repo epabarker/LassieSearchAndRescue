@@ -23,9 +23,11 @@ public class PCComms extends Thread {
 	
 	private String lastMessage = "//";
 	
-	private boolean moveSuccess;
+	private boolean moveSuccess, turnSuccess;
 	
 	private String color = "";
+	
+	private float irDist = -1f;
 	
 	private String robotInfo;
 
@@ -46,8 +48,10 @@ public class PCComms extends Thread {
 	public void sendCommand(String command){
 		output.println(command);
 		
+		turnSuccess = false;
 		moveSuccess = false;
 		color = "";
+		setIrDist(-1f);
 	}
 
 	public void handleCommands(String command){
@@ -66,9 +70,18 @@ public class PCComms extends Thread {
 			moveSuccess = true;
 			return;
 		}
+		
+		if(command.contains("TURNEDTO")){
+			System.out.println("T " + command);
+			turnSuccess = true;
+			return;
+		}
+		
+		
 
 		if(command.contains("DIST")){
 			System.out.println("F " + command);
+			setIrDist(Float.parseFloat(command.split(" ")[1]));
 			return;
 		}
 		
@@ -171,7 +184,19 @@ public class PCComms extends Thread {
 		return moveSuccess;
 	}
 	
+	public boolean isTurnSuccess(){
+		return turnSuccess;
+	}
+	
 	public String getColor(){
 		return color;
+	}
+
+	public float getIrDist() {
+		return irDist;
+	}
+
+	public void setIrDist(float irDist) {
+		this.irDist = irDist;
 	}
 }

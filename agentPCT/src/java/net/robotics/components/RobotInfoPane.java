@@ -94,10 +94,11 @@ public class RobotInfoPane extends JPanel implements ActionListener {
 	}
 
 	public class RobotInfo {
-		private int x, y;
+		private int x, y, h;
+		private boolean locationFound;
 		
 		public RobotInfo(){
-			this.setPos(x, y);
+			this.setLocationFound(false);
 		}
 		
 		public void setPos(int x, int y){
@@ -119,6 +120,22 @@ public class RobotInfoPane extends JPanel implements ActionListener {
 
 		public void setY(int y) {
 			this.y = y;
+		}
+
+		public boolean isLocationFound() {
+			return locationFound;
+		}
+
+		public void setLocationFound(boolean locationFound) {
+			this.locationFound = locationFound;
+		}
+
+		public int getHeading() {
+			return h;
+		}
+
+		public void setHeading(int h) {
+			this.h = h;
 		}
 	}
 }

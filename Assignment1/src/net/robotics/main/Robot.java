@@ -277,18 +277,24 @@ public class Robot {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		
+		float dist = irMonitor.getDistance();
 
 		if(heading == 3)
 			irMonitor.rotate(-90);
 		if(heading == 1)
 			irMonitor.rotate(90);
 
-		return irMonitor.getDistance();
+		return dist;
 	}
 
 	private int CurrentHeading = 0;
 	private float expectedRotationAmount = 0;
 	private int Revolutions = 0;
+	
+	public void correctHeading(int d) {
+		this.CurrentHeading = d;
+	}
 
 	//turn to heading
 	public void turnToHeading(int desiredHeading) {
@@ -372,6 +378,90 @@ public class Robot {
 				rightColorSensor.getColor() + " " +
 				MoveProcess;
 	}
+	
+	public void turnAmount(int amount) {
+		MoveProcess = "ITURN";
+		
+		double angularSpeed = pilot.getAngularSpeed();
+		double angularAcc = pilot.getAngularAcceleration();
+		pilot.setAngularSpeed(100);
+		pilot.setAngularAcceleration(100);
+		
+		amount = amount % 4;	
+		
+		int rotationAmount = amount * 90;
+		
+		if(amount == 3){
+			rotationAmount = -90;
+		}
+		
+		expectedRotationAmount+=rotationAmount;
+
+		pilot.rotate(rotationAmount);
+		
+		pilot.setAngularSpeed(angularSpeed);
+		pilot.setAngularAcceleration(angularAcc);
+
+		correctHeadingAcc();
+	}
+	
+	public boolean independentMove(){
+		pilot.setLinearSpeed(10);
+		pilot.setLinearAcceleration(5);
+
+		Motor.B.setSpeed(45);
+		Motor.D.setSpeed(45);
+
+		Motor.B.setAcceleration(6000);
+		Motor.D.setAcceleration(6000);
+
+		Motor.B.forward();
+		Motor.D.forward();
+
+		float sGyro = -1000;
+
+		MoveProcess = "IFINDINGLINE";
+		
+		ColorNames lcn, rcn;
+		do{
+			lcn = leftColorSensor.getColor();
+			rcn = rightColorSensor.getColor();
+
+			if(lcn == ColorNames.BLACK){
+				Motor.B.stop();
+				if(sGyro == -1000){
+					MoveProcess = "IFINDINGOTHERLINE";
+					sGyro = gyroMonitor.getAngle();
+				}
+			}
+
+			if(rcn == ColorNames.BLACK){
+				Motor.D.stop();
+				if(sGyro == -1000){
+					MoveProcess = "IFINDINGOTHERLINE";
+					sGyro = gyroMonitor.getAngle();
+				}
+			}
+
+			screen.clearScreen();
+			screen.writeTo(new String[]{
+					"l: " + sGyro,
+					"r: " + gyroMonitor.getAngle(),
+					"bb: " + (gyroMonitor.getAngle() - sGyro)
+			}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
+		}while(Motor.D.isMoving() || Motor.B.isMoving());
+
+		gyroMonitor.resetGyro();
+		expectedRotationAmount = 0;
+		
+		pilot.stop();
+
+		MoveProcess = "IFINALISINGMOVEMENT";
+		
+		pilot.travel(17.5f);
+
+		return true;
+	}
 
 	//move in heading
 	public boolean move(int heading){
@@ -408,72 +498,7 @@ public class Robot {
 			movements++;
 		}
 
-		pilot.setLinearSpeed(10);
-		pilot.setLinearAcceleration(5);
-
-
-		Motor.B.setSpeed(45);
-		Motor.D.setSpeed(45);
-
-		Motor.B.setAcceleration(6000);
-		Motor.D.setAcceleration(6000);
-
-		Motor.B.forward();
-		Motor.D.forward();
-
-		float sGyro = -1000;
-
-		MoveProcess = "FINDINGLINE";
-		
-		ColorNames lcn, rcn;
-		do{
-			lcn = leftColorSensor.getColor();
-			rcn = rightColorSensor.getColor();
-
-			if(lcn == ColorNames.BLACK){
-				Motor.B.stop();
-				if(sGyro == -1000){
-					MoveProcess = "FINDINGOTHERLINE";
-					sGyro = gyroMonitor.getAngle();
-				}
-			}
-
-			if(rcn == ColorNames.BLACK){
-				Motor.D.stop();
-				if(sGyro == -1000){
-					MoveProcess = "FINDINGOTHERLINE";
-					sGyro = gyroMonitor.getAngle();
-				}
-			}
-
-			screen.clearScreen();
-			screen.writeTo(new String[]{
-					"l: " + sGyro,
-					"r: " + gyroMonitor.getAngle(),
-					"bb: " + (gyroMonitor.getAngle() - sGyro)
-			}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());
-
-			/*if(CHECK IR SENSOR){
-				pilot.travel(-4.0f);
-				return false;
-			}*/
-		}while(Motor.D.isMoving() || Motor.B.isMoving());
-
-		/*screen.clearScreen();
-		screen.writeTo(new String[]{
-				"OUT",
-				"l: " + lcn,
-				"r: " + rcn,
-		}, 0, 0, GraphicsLCD.LEFT, Font.getSmallFont());*/
-
-		gyroMonitor.resetGyro();
-		expectedRotationAmount = 0;
-		
-		pilot.stop();
-
-		MoveProcess = "FINALISINGMOVEMENT";
-		
-		pilot.travel(17.5f);
+		independentMove();
 
 		return true;
 	}
@@ -508,10 +533,11 @@ public class Robot {
 
 
 	public void mainLoop(){
-		move(0);
-		move(0);
-		move(0);
-
+		//move(0);
+		//move(0);
+		//move(0);
+		
+		
 
 		/*screen.clearScreen();
     	screen.writeTo(new String[]{
@@ -558,4 +584,6 @@ public class Robot {
 	public SoundMonitor getSoundMonitor() {
 		return audio;
 	}
+
+	
 }

@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import jason.asSyntax.ASSyntax;
 import jason.asSyntax.Literal;
 import jason.asSyntax.NumberTerm;
+import jason.asSyntax.StringTerm;
 import jason.asSyntax.Structure;
 import jason.asSyntax.Term;
 import jason.environment.Environment;
@@ -37,9 +38,11 @@ public class RobotEnv extends Environment {
 
 	PCWindow pc;
 
+	private PCParticlePoseProvider mclLoc;
+
 	private LinkedList<Tile> movePath = null;
 
-	private Thread moveThread;
+	private Thread moveThread, mclThread;
 
 	/** Called before the MAS execution with the args informed in .mas2j */
 	@Override
@@ -48,6 +51,8 @@ public class RobotEnv extends Environment {
 
 		pc = new PCWindow("Robotics Assignment 2");
 
+		mclLoc = new PCParticlePoseProvider(pc.getMap().getMap());
+
 		moveThread = new Thread(){
 			public void run() {
 				super.run();
@@ -55,7 +60,11 @@ public class RobotEnv extends Environment {
 
 
 					if(movePath == null){
-						//System.out.println("No Move Pth..");
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
 					} else if(movePath.size() > 0){
 						Tile move = movePath.pop();
 						moveTo(move.getX(), move.getY());
@@ -63,16 +72,30 @@ public class RobotEnv extends Environment {
 						movePath = null;
 					}
 
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+					
 				}
 			}		
 		};
 
 		moveThread.start();
+
+		mclThread = new Thread(){
+			public void run() {
+				super.run();
+				while (!mclLoc.goodEstimate()) {
+					if(mclLoc.mCL(pc.getRobotInfoPanel().getPcComms())){
+						Particle pos = mclLoc.getLocation();
+						pc.getRobotInfoPanel().getRobotInfo().setPos(pos.getX(), pos.getY());
+						pc.getRobotInfoPanel().getRobotInfo().setHeading(pos.getHeading());
+						pc.getRobotInfoPanel().getRobotInfo().setLocationFound(true);
+						break;
+					}
+				}
+				
+				pc.getRobotInfoPanel().getPcComms().sendCommand("CORRECTHEADING " + pc.getRobotInfoPanel().getRobotInfo().getHeading());
+				
+			}		
+		};
 	}
 
 	@Override
@@ -83,8 +106,16 @@ public class RobotEnv extends Environment {
 					Literal pos1 = Literal.parseLiteral("connected(yee)");
 					addPercept(pos1);
 				}
+			} else if (action.getFunctor().equals("findLocation")) {
+				if(!mclThread.isAlive() && !pc.getRobotInfoPanel().getRobotInfo().isLocationFound()){
+					mclThread.start();
+				} else if(pc.getRobotInfoPanel().getRobotInfo().isLocationFound()){
+					updatePercepts();
+				}
 			} else if (action.getFunctor().equals("checkLocation")) {
-				updatePercepts();
+				if(pc.getRobotInfoPanel().getRobotInfo().isLocationFound()){
+					updatePercepts();
+				}
 			} else if (action.getFunctor().equals("addVictim")) {
 				int x = (int)((NumberTerm)action.getTerm(0)).solve();
 				int y = (int)((NumberTerm)action.getTerm(1)).solve();
@@ -146,7 +177,10 @@ public class RobotEnv extends Environment {
 				// Assign victim location to robot location
 				// Display colour signifying that a victim is being carried
 				System.out.println("executing: "+action+", picking up victim");
-				takeVictim();
+
+				int victim = (int)((NumberTerm)action.getTerm(0)).solve();
+				
+				takeVictim(victim == 1	);
 
 			} else if (action.getFunctor().equals("nextVictim")) {
 				System.out.println("Executing: "+action+", going to next victim!(changed)");
@@ -162,7 +196,6 @@ public class RobotEnv extends Environment {
 
 				for (int i = 0; i < victims.size(); i++) {
 					Location victimLoc = victims.get(i);
-
 
 					LinkedList<Tile> path = AStarSearch.getPath(pc.getMap().getMap(), 
 							pc.getMap().getMap().getTile(x, y), 
@@ -182,11 +215,11 @@ public class RobotEnv extends Environment {
 
 				Literal pos1 = Literal.parseLiteral("target(" + travelPath.peekLast().getX() + "," + travelPath.peekLast().getY() + ")");
 				addPercept(pos1);
-
+				
 				if(movePath == null)
 					movePath = travelPath;
 				else{
-					System.out.println("CALLING MOVE WHILE PATH IS NOT EMPTY: NEXT VICTIM");
+					System.out.println("CALLING MOVE WHILE PATH IS NOT EMPTY: NEXT VICTIM " + movePath.size() + " / " + movePath.peek().getX() + ", " +movePath.peekLast().getY());
 					return false;
 				}
 			} else if (action.getFunctor().equals("dropVictim")) {
@@ -328,32 +361,48 @@ public class RobotEnv extends Environment {
 			col = Literal.parseLiteral("colour("+rx+","+ry+",white)");
 			addPercept(col);
 		}*/
-		
+
 		pc.getRobotInfoPanel().getPcComms().sendCommand("GETCOLOR");
 
 		String isColor = pc.getRobotInfoPanel().getPcComms().getColor();
-		
+
 		while(isColor.isEmpty()){
-			
+
 			isColor = pc.getRobotInfoPanel().getPcComms().getColor();
-			
+
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
-		
+
 		Literal col;
 		int rx = pc.getRobotInfoPanel().getRobotInfo().getX();
 		int ry = pc.getRobotInfoPanel().getRobotInfo().getY();
-		
+
 		System.out.println("colour("+rx+","+ry+"," + pc.getRobotInfoPanel().getPcComms().getColor().toLowerCase() + ")");
-		
+
 		col = Literal.parseLiteral("colour("+rx+","+ry+"," + pc.getRobotInfoPanel().getPcComms().getColor().toLowerCase() + ")");
-		
-		
+
+
 		addPercept(col);
+	}
+
+	void move(int heading){
+		pc.getRobotInfoPanel().getPcComms().sendCommand("MOVE " + heading);
+
+
+		while(!pc.getRobotInfoPanel().getPcComms().isMoveSuccess()){
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		pc.getRobotInfoPanel().getPcComms().clearLastMessage();
+		System.out.println("OUTSUCCESS ");
 	}
 
 	void moveTo(int x, int y) {
@@ -373,19 +422,9 @@ public class RobotEnv extends Environment {
 			cardinalHeading = 2;
 		}
 
-		pc.getRobotInfoPanel().getPcComms().sendCommand("MOVE " + cardinalHeading);
-
-
-		while(!pc.getRobotInfoPanel().getPcComms().isMoveSuccess()){
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+		if(!(dx == 0 && dy == 0)){
+			move(cardinalHeading);
 		}
-		
-		pc.getRobotInfoPanel().getPcComms().clearLastMessage();
-		System.out.println("OUTSUCCESS ");
 
 		pc.getRobotInfoPanel().getRobotInfo().setPos(x, y);
 		pc.getMap().updateRobotPosition(x, y);
@@ -410,11 +449,13 @@ public class RobotEnv extends Environment {
 		addPercept(pos1);
 	}
 
-	void takeVictim() {
+	void takeVictim(boolean victim) {
+		pc.getRobotInfoPanel().getPcComms().sendCommand("PICKUP " + (victim ? "true" : "false"));
 		// Switch light on to say we are carrying victim
 	}
 
 	void dropVictim() {
+		pc.getRobotInfoPanel().getPcComms().sendCommand("DROP");
 		// Switch light off to say we are not carrying a victim
 	}
 

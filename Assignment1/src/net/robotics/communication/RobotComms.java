@@ -72,7 +72,7 @@ public class RobotComms extends Thread{
 			return;
 		}
 		
-		if(commands[0].toUpperCase().contains("MOVE")){
+		if(commands[0].toUpperCase().equalsIgnoreCase("MOVE")){
 			int d = 0;
 			if(commands.length > 1)
 				d = Integer.parseInt(commands[1]);
@@ -83,12 +83,31 @@ public class RobotComms extends Thread{
 			return;
 		}
 		
-		if(commands[0].toUpperCase().contains("TURNTO")){
+		if(commands[0].toUpperCase().equalsIgnoreCase("IMOVE")){
+			
+			robot.independentMove();
+			sendCommand("MOVESUCCESS ");
+			
+			return;
+		}
+		
+		if(commands[0].toUpperCase().equalsIgnoreCase("TURNTO")){
 			int d = 0;
 			if(commands.length > 1)
 				d = Integer.parseInt(commands[1]);
 			
 			robot.turnToHeading(d);
+			sendCommand("TURNEDTO " + d);
+			
+			return;
+		}
+		
+		if(commands[0].toUpperCase().equalsIgnoreCase("ITURNTO")){
+			int d = 0;
+			if(commands.length > 1)
+				d = Integer.parseInt(commands[1]);
+			
+			robot.turnAmount(d);
 			sendCommand("TURNEDTO " + d);
 			
 			return;
@@ -116,6 +135,15 @@ public class RobotComms extends Thread{
 		
 		if(commands[0].toUpperCase().contains("DROP")){
 			robot.dropVictim();
+			return;
+		}
+		
+		if(commands[0].toUpperCase().contains("CORRECTHEADING")){
+			int d = 0;
+			if(commands.length > 1)
+				d = Integer.parseInt(commands[1]);
+			
+			robot.correctHeading(d);
 			return;
 		}
 		

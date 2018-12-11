@@ -24,6 +24,7 @@ public class MapCanvas extends JPanel {
 
 	public MapCanvas(KnownMap map) {
 		this.map = map;
+		map.getTile(5,  0).setType(TileType.GREENTILE);
 		//this.setPreferredSize(new Dimension(600,600));
 	}
 	
