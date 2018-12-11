@@ -350,4 +350,8 @@ public class PCParticlePoseProvider {
 			System.out.println(x);
 		}
 	}
+
+	public ArrayList<Particle> getParticles() {
+		return tSet.getParticleSet();
+	}
 }
