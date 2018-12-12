@@ -5,7 +5,7 @@ import java.util.Collection;
 
 public class Tile {
 	public enum TileType{
-		Empty, OBSTACLE, Hospital, Victim, NONCRITICAL, NOVICTIM
+		Empty, OBSTACLE, Hospital, Victim, NONCRITICAL, NOVICTIM, GREENTILE
 	}
 	
 	private int x, y;

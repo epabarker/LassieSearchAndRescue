@@ -1,5 +1,7 @@
 package net.robotics.communication;
 
+import net.robotics.communication.Tile.TileType;
+
 public class testMCL {
 	private static PCParticlePoseProvider particlePP;
 
@@ -7,15 +9,17 @@ public class testMCL {
 	private static int yCells = 6;
 	
 	private static int[][] obstacleLocations = {
-			{2,2},
-			{3,2},
-			{4,3},
-			{5,0}
+			{1,1},
+			{4,4},
+			{1,4},
+			{4,1}
 	};
 	
 	public static void main(String[] args) {
 		KnownMap map = new KnownMap(xCells, yCells, obstacleLocations);
-		particlePP = new PCParticlePoseProvider(xCells, yCells, map);
-		particlePP.localise();
+		map.getTile(0, 0).setType(TileType.Hospital);
+		map.getTile(5, 0).setType(TileType.GREENTILE);
+		particlePP = new PCParticlePoseProvider(map);
+		//particlePP.localise();
 	}
 }

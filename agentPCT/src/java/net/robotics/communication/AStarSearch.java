@@ -61,6 +61,12 @@ public class AStarSearch {
 	}
 	
 	public static LinkedList<Tile> getPath(KnownMap map, Tile start, Tile goal){
+		if(start.getX() == goal.getX() && start.getY() == goal.getY()){
+			LinkedList<Tile> tt = new LinkedList<Tile>();
+			tt.add(goal);
+			return tt;
+		}
+		
 		AStarSearch astar = new AStarSearch(map);
 		return astar.searchForPath(start, goal);
 	}
