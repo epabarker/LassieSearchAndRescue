@@ -199,14 +199,52 @@ public class PCParticlePoseProvider {
 	private void move(PCComms pc) {
 		
 		printI("Move");
-		randomRotate(pc);
-		moveForward(pc);
+		iceSlide(pc);
+		//randomRotate(pc);
+		//moveForward(pc);
 	}
 	
-	private void randomRotate(PCComms pc) {
-		poseChange[2] = ThreadLocalRandom.current().nextInt(0, 3 + 1);
+	private void iceSlide(PCComms pc) {
 		
-		pc.sendCommand("ITURNTO " + poseChange[2]);
+		poseChange[2] = 0;
+		
+		if (!(getIRSensorLocObstace(pc, 0) < 24f)) {
+			pc.sendCommand("IMOVE");
+
+
+			while(!pc.isMoveSuccess()){
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+
+			pc.clearLastMessage();
+			System.out.println("OUTSUCCESS ");
+			
+			moved = true;
+		} else {
+
+			int heading = ThreadLocalRandom.current().nextInt(1, 2 + 1);
+			
+			if(heading == 2){
+				heading += 1;
+			}
+			
+			System.out.println("Rotating: " + heading);
+			
+			rotate(pc, heading);
+			
+			moved = false;
+		}
+		
+	}
+	
+	private void rotate(PCComms pc, int heading){
+		pc.sendCommand("ITURNTO " + heading);
+		
+		poseChange[2] = heading;
 
 
 		while(!pc.isTurnSuccess()){
@@ -219,6 +257,12 @@ public class PCParticlePoseProvider {
 
 		pc.clearLastMessage();
 		System.out.println("OUTSUCCESS ");
+	}
+
+	private void randomRotate(PCComms pc) {
+		int heading = ThreadLocalRandom.current().nextInt(0, 3 + 1);
+		
+		rotate(pc, heading);
 	}
 
 	private void moveForward(PCComms pc) {

@@ -16,6 +16,7 @@ import jason.environment.grid.GridWorldModel;
 import jason.environment.grid.GridWorldView;
 import jason.environment.grid.Location;
 import net.robotics.communication.Tile.TileType;
+import net.robotics.components.VictimInfoPane.Status;
 
 public class RobotEnv extends Environment {
 
@@ -139,6 +140,9 @@ public class RobotEnv extends Environment {
 				pc.getMap().updateMap(TileType.Victim, x, y);
 				Location loc1 = new Location(x,y);
 				victims.add(loc1);
+				
+				pc.addVictims(loc1);
+				
 			} else if (action.getFunctor().equals("removeVictim")) {
 				int x = (int)((NumberTerm)action.getTerm(0)).solve();
 				int y = (int)((NumberTerm)action.getTerm(1)).solve();
@@ -154,8 +158,31 @@ public class RobotEnv extends Environment {
 				pc.getMap().updateMap(TileType.NONCRITICAL, x, y);
 				Location loc1 = new Location(x,y);
 				toRescue.add(loc1);
+				
+				pc.getVictimPane(x, y).setStatus(Status.noncritical);
 
-			} else if (action.getFunctor().equals("addObstacle")) {
+			} else if (action.getFunctor().equals("addNonCritical")) {
+				int x = (int)((NumberTerm)action.getTerm(0)).solve();
+				int y = (int)((NumberTerm)action.getTerm(1)).solve();
+				System.out.println("add non critical at: "+x+","+y);
+				
+				pc.getVictimPane(x, y).setStatus(Status.noncritical);
+
+			} else if (action.getFunctor().equals("notVictim")) {
+				int x = (int)((NumberTerm)action.getTerm(0)).solve();
+				int y = (int)((NumberTerm)action.getTerm(1)).solve();
+				System.out.println("add non critical at: "+x+","+y);
+				
+				pc.getVictimPane(x, y).setStatus(Status.novictim);
+
+			} else if (action.getFunctor().equals("addCritical")) {
+				int x = (int)((NumberTerm)action.getTerm(0)).solve();
+				int y = (int)((NumberTerm)action.getTerm(1)).solve();
+				System.out.println("add non critical at: "+x+","+y);
+				
+				pc.getVictimPane(x, y).setStatus(Status.critical);
+
+			}  else if (action.getFunctor().equals("addObstacle")) {
 				int x = (int)((NumberTerm)action.getTerm(0)).solve();
 				int y = (int)((NumberTerm)action.getTerm(1)).solve();
 				System.out.println("adding obstacle at: "+x+","+y);
@@ -196,7 +223,11 @@ public class RobotEnv extends Environment {
 				System.out.println("executing: "+action+", picking up victim");
 
 				int victim = (int)((NumberTerm)action.getTerm(0)).solve();
-
+				
+				pc.getVictimPane(pc.getRobotInfoPanel().getRobotInfo().getX(), pc.getRobotInfoPanel().getRobotInfo().getY()).setStatus(
+						(victim == 1) ? Status.criticalrescued : Status.noncriticalrescued
+						);
+				
 				takeVictim(victim == 1	);
 
 			} else if (action.getFunctor().equals("nextVictim")) {
@@ -235,6 +266,8 @@ public class RobotEnv extends Environment {
 
 				if(movePath == null)
 					movePath = travelPath;
+				//if(movePath.size() == 1)
+					//movePath = travelPath;
 				else{
 					System.out.println("CALLING MOVE WHILE PATH IS NOT EMPTY: NEXT VICTIM " + movePath.size() + " / " + movePath.peek().getX() + ", " +movePath.peekLast().getY());
 					return false;

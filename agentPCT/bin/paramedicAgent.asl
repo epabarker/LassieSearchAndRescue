@@ -11,7 +11,7 @@ foundAllVictims :- .count(foundV(_,_), 3).
 
 rescuedAllVictims :- .count(rescued(_,_), 3).
 
-plays(initiator,doctor1).
+plays(initiator,doctor4).
 
 at :- location(r,X,Y) & target(X,Y).
 
@@ -137,32 +137,36 @@ at :- location(r,X,Y) & target(X,Y).
 +!checkColour(X,Y) : colour(X,Y,burgandy)
     <-  .print("Colour recognised as victim");
     	+foundV(X,Y);
-    	!requestVictimStatus(doctor1,X,Y,burgandy);
+    	!requestVictimStatus(doctor4,X,Y,burgandy);
         !intention(X,Y).
 +!checkColour(X,Y) : colour(X,Y,cyan)
     <-  .print("Colour recognised as victim");
     	+foundV(X,Y);
-    	!requestVictimStatus(doctor1,X,Y,cyan);
+    	!requestVictimStatus(doctor4,X,Y,cyan);
         !intention(X,Y).
 +!checkColour(X,Y) : not (colour(X,Y,burgandy) | colour(X,Y,cyan))
     <-  .print("Colour not recognised as victim");
+    	notVictim(X,Y);
     	-atTarget;
         -target(X,Y);
-    	-location(victim,X,Y)[source(doctor1)].
+    	-location(victim,X,Y)[source(doctor4)].
 
 +!intention(X,Y) : critical(X,Y)
     <-  .print("Status: critical, intention: rescue");
+    	addCritical(X,Y);
     	!rescue(X,Y).
 
 +!intention(X,Y) : ~critical(X,Y) & not allCriticalRescued
     <-  .print("Status: noncritical, not all critical rescued. Intention: will come back.");
+   	 	addNonCritical(X,Y);
     	+toBeRescued(X,Y);
     	-atTarget;
         -target(X,Y);
-    	-location(victim,X,Y)[source(doctor1)].
+    	-location(victim,X,Y)[source(doctor4)].
 
 +!intention(X,Y) : ~critical(X,Y) & allCriticalRescued
     <-  .print("Status: noncritical, all critical rescued. Intention: rescue");
+    	addNonCritical(X,Y);
     	!rescue(X,Y).
 
 +!rescue(X,Y) : critical(X,Y)
@@ -173,7 +177,7 @@ at :- location(r,X,Y) & target(X,Y).
     	+criticalCount(NewCount);
     	-criticalCount(C);
     	+carrying(1);
-        -location(victim,X,Y)[source(doctor1)];
+        -location(victim,X,Y)[source(doctor4)];
         goHospital;
         .print("Going to hospital");
         !at;
@@ -193,7 +197,7 @@ at :- location(r,X,Y) & target(X,Y).
     <-  +carrying(0);
     	-atTarget;
         -target(X,Y);
-        -location(victim,X,Y)[source(doctor1)];
+        -location(victim,X,Y)[source(doctor4)];
         goHospital;
         .print("Going to hospital");
         !at;
