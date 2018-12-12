@@ -38,6 +38,7 @@ public class RobotInfoPane extends JPanel implements ActionListener {
 		add(ipAddress);
 		add(confirmButton);
 		
+		robotInfoDisplay = new JLabel("NOTHING");
 		
 	}
 
@@ -60,12 +61,12 @@ public class RobotInfoPane extends JPanel implements ActionListener {
 			
 			pcComms.start();
 			
-			/*remove(ipAddress);
-			remove(confirmButton);
+			removeAll();
 			
 			add(robotInfoDisplay);
 			
-			repaint();*/
+			revalidate();
+			repaint();
 		}
 	}
 	

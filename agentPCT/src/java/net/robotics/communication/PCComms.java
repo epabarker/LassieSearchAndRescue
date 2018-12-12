@@ -46,6 +46,8 @@ public class PCComms extends Thread {
 	}
 
 	public void sendCommand(String command){
+		waitForCommand();
+		
 		output.println(command);
 		
 		turnSuccess = false;
@@ -55,6 +57,7 @@ public class PCComms extends Thread {
 	}
 
 	public void handleCommands(String command){
+		waiting = false;
 		setLastMessage(command);
 		
 		String[] commands = command.split(" ");
@@ -110,7 +113,12 @@ public class PCComms extends Thread {
 			if(commands.length > 6)
 				mp = commands[6];
 			
-			
+			setRobotInfo("Current Heading: " + currentHeading +  "\n" +
+					"Gyro Angle: " + gyroAngle +  "\n" +
+					"Expected Angle: " + exptAngle +  "\n" +
+					"Left Color Sensor: " + lCN +  "\n" +
+					"Right Color Sensor: " + rCN +  "\n" +
+					"Move Process: " + mp);
 			
 			System.out.println("F " + command);
 			return;
@@ -198,5 +206,23 @@ public class PCComms extends Thread {
 
 	public void setIrDist(float irDist) {
 		this.irDist = irDist;
+	}
+
+	public String getRobotInfo() {
+		return robotInfo;
+	}
+
+	public void setRobotInfo(String robotInfo) {
+		this.robotInfo = robotInfo;
+	}
+	
+	private boolean waiting;
+	
+	public void waitForCommand(){
+		waiting = true;
+	}
+
+	public boolean isWaitingForCommand() {
+		return waiting;
 	}
 }
