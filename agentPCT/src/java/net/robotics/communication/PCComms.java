@@ -11,7 +11,7 @@ import java.util.Scanner;
 public class PCComms extends Thread {
 
 	private static final int PORT = 9001;
-	private static final String ADDRESS = "192.168.70.64";
+	private static final String ADDRESS = "0.0.0.0";
 
 	private Socket socket;
 	private BufferedReader input;
@@ -136,6 +136,7 @@ public class PCComms extends Thread {
 			try {
 				text = input.readLine();
 				if(text != null){
+					System.out.println("COMMAND: " + text);
 					handleCommands(text);
 				}
 			} catch (IOException e) {

@@ -33,7 +33,42 @@ public class RobotInfoPane extends JPanel implements ActionListener {
 		confirmButton = new JButton("Connect");
 		
 		confirmButton.setActionCommand("Connect");
-		confirmButton.addActionListener(this);
+		confirmButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				(new Thread() {
+				    @Override
+				    public void run()
+				    {
+				    	System.out.println(ipAddress.getText() + " connection attempt.");
+						
+						if(!connect)
+							return;
+						
+						try {
+							pcComms = new PCComms(ipAddress.getText(), 0);
+							pcComms.sendCommand("YO!");
+						} catch (IOException e1) {
+							System.out.println("Connection Refused");
+							return;
+						} 
+						
+						setConnected(true);
+						
+						System.out.println("Connection Established");
+						
+						pcComms.start();
+						
+						removeAll();
+						
+						add(robotInfoDisplay);
+						
+						revalidate();
+						repaint();
+				    }
+				}).start();
+				
+			}
+		});
 		
 		add(ipAddress);
 		add(confirmButton);
@@ -41,32 +76,24 @@ public class RobotInfoPane extends JPanel implements ActionListener {
 		robotInfoDisplay = new JLabel("NOTHING");
 		
 	}
+	
+	private boolean connect = true;
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
+		
 		if("Connect".equalsIgnoreCase(e.getActionCommand())){
-			System.out.println(ipAddress.getText() + " connection attempt.");
 			
-			try {
-				pcComms = new PCComms(ADDRESS, 0);
-			} catch (IOException e1) {
-				System.out.println("Connection Refused");
-				return;
-			}
 			
-			setConnected(true);
+			//pcComms.start();
 			
-			System.out.println("Connection Established");
-			
-			pcComms.start();
-			
-			removeAll();
+			/*removeAll();
 			
 			add(robotInfoDisplay);
 			
 			revalidate();
-			repaint();
+			repaint();*/
 		}
 	}
 	
